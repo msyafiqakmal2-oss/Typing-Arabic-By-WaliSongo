@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mahir Ketik Arab – Arabic Touch Typing</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Reem+Kufi:wght@500;700&family=Tajawal:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="brand-ar" lang="ar">اكتب</span><span class="brand-t">Mahir Ketik Arab</span></div>
+  <nav id="nav">
+    <button data-view="home" class="on">Beranda</button>
+    <button data-view="tutorial">Tutorial Learning</button>
+    <button data-view="self">Self Learning</button>
+    <button data-view="test">Pre/Post-test</button>
+    <button data-view="report">Laporan</button>
+    <button data-view="guide">Panduan</button>
+  </nav>
+  <div class="tools">
+    <span class="chip" id="rankChip"></span>
+    <span class="chip" title="Streak harian">🔥 <b id="streakN">0</b></span>
+    <span class="chip"><b id="pts">0</b> poin</span>
+    <button class="icon" id="btnSound" title="Suara">🔊</button>
+    <button class="icon" id="btnSet" title="Pengaturan">⚙</button>
+  </div>
+</header>
+
+<main>
+  <!-- BERANDA -->
+  <section id="v-home" class="view">
+    <div class="hero">
+      <div>
+        <p class="greet" id="greet"></p>
+        <h1>Ketik Arab tanpa melihat keyboard.</h1>
+        <p class="lead">Naikkan peringkat dari <b>Mubtadi’</b> sampai <b>Ustadz</b>: kumpulkan poin, bintang, lencana, dan jaga api streak harianmu.</p>
+        <label class="name">Namamu <input id="nameIn" maxlength="24" placeholder="mis. Ahmad"></label>
+        <div class="cta">
+          <button class="primary" id="btnContinue">Lanjut latihan</button>
+          <button data-go="self">Self Learning</button>
+          <button data-go="test">Pre-test</button>
+          <button id="btnNewUser">Pengguna baru</button>
+        </div>
+      </div>
+      <div class="arch">
+        <svg class="fanous" viewBox="0 0 40 80" width="44" aria-hidden="true"><line x1="20" y1="0" x2="20" y2="14" stroke="#e2b34f"/><path d="M14 14h12l3 8H11z" fill="#e2b34f"/><path d="M11 22h18l4 22-13 14L7 44z" fill="#2bb5a0" fill-opacity=".85" stroke="#e2b34f"/><path d="M20 24v32M13 30l7 26M27 30l-7 26" stroke="#e2b34f" stroke-opacity=".6" fill="none"/><path d="M16 58h8l-4 10z" fill="#e2b34f"/></svg>
+        <div class="cal" lang="ar">اكتب<br>بإتقان</div>
+        <div id="rankBox" class="rankbox"></div>
+      </div>
+    </div>
+    <div id="stats" class="stats"></div>
+  </section>
+
+  <!-- TUTORIAL LEARNING (Level + Program 10 Hari) -->
+  <section id="v-tutorial" class="view" hidden>
+    <h1>Tutorial Learning</h1>
+    <p class="lead">Belajar terarah: ikuti <b>Level 1–5</b> secara bertahap, atau jalankan <b>Program 10 Hari</b> (10 pertemuan sesuai modul, bisa diulang).</p>
+    <div class="tabs"><button data-tab="lv" class="on">Level 1–5</button><button data-tab="plan">Program 10 Hari</button></div>
+    <div id="tab-lv">
+      <p class="note">Bintang: ★ akurasi ≥ 80%, ★★ ≥ 90%, ★★★ ≥ 95%.</p>
+      <div id="levelList" class="levels"></div>
+    </div>
+    <div id="tab-plan" hidden>
+      <p class="note">Klik sebuah hari untuk memilih materi pertemuannya. Materi pertemuan sebelumnya bisa dipilih lagi untuk diulang. Sesi berhenti otomatis setelah 10 menit, dan hari yang selesai tercentang.</p>
+      <div id="planList" class="plan"></div>
+    </div>
+  </section>
+
+  <!-- SELF LEARNING (game 5 level) -->
+  <section id="v-self" class="view" hidden>
+    <h1>Self Learning</h1>
+    <p class="lead">Satu game untuk setiap level. Pilih level, lalu mainkan sendiri. Skor terbaik: <b id="gBest">0</b></p>
+    <div id="selfList" class="levels"></div>
+    <div id="gameWrap" hidden>
+      <div class="cta"><button id="gameBack">← Pilih game</button></div>
+      <div class="gamewrap"><canvas id="gameCv"></canvas><div id="gameOverlay" class="overlay" hidden></div></div>
+      <div class="finishbar"><button id="gameFinish" class="danger">Selesai</button></div>
+    </div>
+  </section>
+
+  <!-- TEST -->
+  <section id="v-test" class="view" hidden>
+    <h1>Pre-test &amp; Post-test</h1>
+    <p class="lead">Ketik <b>satu paragraf</b> yang sama pada pre-test dan post-test (maksimal 3 menit). Waktu mulai berjalan saat huruf pertama diketik. Hasilnya dibandingkan di Laporan.</p>
+    <div class="cta"><button class="primary" id="btnPre">Pre-test</button><button id="btnPost">Post-test</button></div>
+    <div id="testStatus" class="note"></div>
+  </section>
+
+  <!-- LAPORAN -->
+  <section id="v-report" class="view" hidden>
+    <h1>Laporan evaluasi</h1>
+    <p id="repName" class="lead"></p>
+    <div id="cmp"></div>
+    <h2>Grafik kemajuan</h2>
+    <div id="chart"></div>
+    <h2>Lencana</h2>
+    <div id="badges" class="badges"></div>
+    <h2>Riwayat sesi</h2>
+    <div id="history"></div>
+    <div class="cta"><button id="btnCsv">Unduh CSV</button><button id="btnPrint">Cetak laporan</button><button class="danger" id="btnNewUser2">Ganti pengguna</button></div>
+  </section>
+
+  <!-- PANDUAN -->
+  <section id="v-guide" class="view" hidden>
+    <h1>Panduan &amp; cara kerja</h1>
+    <details open><summary>Cara memakai (langkah demi langkah)</summary>
+      <ol><li>Isi namamu di Beranda.</li><li>Kerjakan <b>Pre-test</b> (satu paragraf, maks. 3 menit) untuk mengukur kemampuan awal.</li><li>Berlatih lewat <b>Tutorial Learning</b> (Level 1–5 atau Program 10 Hari) dan <b>Self Learning</b> (game tiap level).</li><li>Di halaman mengetik, klik kotak ketik, lalu ketik sesuai teks Arab di atasnya. Timer mulai saat huruf pertama diketik.</li><li>Setelah latihan (mis. 10 hari), kerjakan <b>Post-test</b> dengan paragraf yang sama dan lihat perbandingannya di <b>Laporan</b>.</li></ol></details>
+    <details><summary>Sistem keyboard: bawaan vs sistem</summary>
+      <p><b>Keyboard Arab bawaan (default):</b> situs mengubah tombol fisikmu menjadi huruf Arab sesuai peta Arabic 101. Tekan <b>F</b> keluar ب, <b>J</b> keluar ت, dan seterusnya. Tanda kecil di tiap tombol layar menunjukkan tombol Latin yang harus ditekan. <b>Shift</b> + tombol menghasilkan harakat (mis. Shift+Q = fathah) dan tanda baca.</p>
+      <p><b>Keyboard sistem:</b> pakai layout Arabic (101) dari Windows/Linux/Mac (Win+Spasi). Ubah di ⚙ Pengaturan jika kamu ingin berlatih dengan keyboard sistem asli.</p>
+      <p>Tombol di layar juga bisa diklik/diketuk (berguna di HP).</p></details>
+    <details><summary>Posisi jari (touch typing)</summary>
+      <p>Letakkan jari di <b>home row</b>: ش س ي ب (tangan kiri) dan ت ن م ك (tangan kanan). Tombol <b>F</b> dan <b>J</b> adalah penanda untuk telunjuk. Warna garis di bawah tiap tombol menunjukkan jari:</p>
+      <p class="legend"><span class="f0">Kelingking</span><span class="f1">Jari manis</span><span class="f2">Jari tengah</span><span class="f3">Telunjuk</span><span class="f4">Jempol (spasi)</span></p></details>
+    <details><summary>Rumus penilaian</summary>
+      <ul><li><b>WPM</b> = karakter diketik ÷ 5 ÷ menit</li><li><b>CPM</b> = seluruh karakter ÷ menit</li><li><b>Correct CPM</b> = karakter benar ÷ menit</li><li><b>Akurasi</b> = karakter benar ÷ total × 100%</li><li><b>Kesalahan</b> = karakter salah ÷ total × 100%</li></ul>
+      <p>Karakter dibandingkan per posisi dengan teks sumber. Menghapus (Backspace) dan memperbaiki diperbolehkan; yang dihitung adalah hasil akhir.</p></details>
+    <details><summary>Poin, bintang, peringkat, lencana, streak</summary>
+      <ul><li><b>Poin</b> = (Correct CPM × akurasi) ÷ 10 + 5 per bintang + 1 per 10 combo + 10 jika lebih baik dari sesi sebelumnya. Tes memberi 20 poin.</li><li><b>Bintang</b>: ★ ≥ 80%, ★★ ≥ 90%, ★★★ ≥ 95%.</li><li><b>Peringkat</b>: Mubtadi’ (0) → Thalib (100) → Katib (300) → Adib (700) → Khattat (1500) → Ustadz (3000).</li><li><b>Combo</b>: jumlah huruf benar beruntun. Combo 50 membuka lencana.</li><li><b>Streak</b>: berlatih tiap hari menambah 🔥. Lewat sehari, streak mulai lagi dari 1.</li><li><b>Lencana</b>: lihat syarat di halaman Laporan; contoh “Teliti” = akurasi ≥ 95%.</li></ul></details>
+    <details><summary>Mode latihan</summary>
+      <ul><li><b>Tutorial Learning › Level 1–5</b>: huruf → kata pendek 2–3 huruf (tangan kiri → tangan kanan → gabungan) → kata → kalimat → paragraf.</li><li><b>Self Learning</b>: satu game per level: <b>Hujan Huruf</b> (L1), <b>Tebak Gambar</b> (L2), <b>Bom Waktu</b> (L3), <b>Pelari Rintangan</b> (L4), dan <b>Balapan Paragraf</b> melawan robot (L5). Tombol <b>Selesai</b> di bagian bawah mengakhiri sesi setelah konfirmasi, dan hasil sampai saat itu tetap dihitung.</li><li><b>Tutorial Learning › Program 10 Hari</b>: tiap hari = satu pertemuan modul: 1–5 huruf per kelompok jari, 6 huruf acak, 7 dua dan tiga huruf, 8 empat huruf atau lebih, 9 kalimat (tanpa dan dengan harakat), 10 teks bertingkat dan post-test. Klik hari untuk memilih materi, dan pilih nomor pertemuan sebelumnya untuk mengulang.</li><li><b>Pre/Post-test</b>: satu paragraf yang sama, maks. 3 menit, hasilnya masuk Laporan.</li></ul></details>
+    <details><summary>Tips &amp; tanya-jawab</summary>
+      <ul><li>Utamakan akurasi dulu, kecepatan akan menyusul.</li><li>Jangan melirik keyboard; lihat teks di layar.</li><li>Berlatih 10–15 menit tiap hari lebih efektif daripada sekali lama.</li><li><b>Data disimpan di mana?</b> Hanya di browser perangkat ini, tanpa database dan tanpa server. Bila ada orang lain yang mau memakai, tekan <b>Pengguna baru</b> (Beranda) atau <b>Ganti pengguna</b> (Laporan): semua data pengguna sebelumnya dihapus dan tidak bisa dikembalikan. Unduh CSV atau cetak laporan dulu bila masih dibutuhkan.</li><li><b>Teks tidak bisa ditempel (paste)?</b> Memang dinonaktifkan agar tes adil.</li></ul></details>
+  </section>
+
+  <!-- AREA MENGETIK -->
+  <section id="v-stage" class="view" hidden>
+    <div class="stagebar">
+      <button id="btnBack">← Keluar</button>
+      <div id="stTitle" class="st-title"></div>
+      <div class="live"><span>Waktu <b id="lvTime">0:00</b></span><span>WPM <b id="lvWpm">0</b></span><span>Akurasi <b id="lvAcc">100%</b></span><span id="combo" class="combo"></span></div>
+    </div>
+    <div class="bar"><i id="prog"></i></div>
+    <div id="race" class="race" hidden><div><span>Kamu</span><b><i id="raceMe"></i></b></div><div><span>Robot 🤖</span><b><i id="raceBot"></i></b></div></div>
+    <div id="kbWarn" class="warn" hidden>Huruf Latin terdeteksi. Aktifkan “Keyboard Arab bawaan” di ⚙ Pengaturan atau ganti keyboard sistem ke Arabic.</div>
+    <div id="target" class="target" dir="rtl" lang="ar"></div>
+    <textarea id="input" class="input" dir="rtl" lang="ar" rows="3" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="اكتب هنا… (klik di sini lalu ketik)"></textarea>
+    <div id="kb" class="kb" dir="ltr"></div>
+    <p class="note">Mode: <b id="kbModeLbl"></b> · ubah di ⚙ · tanda kecil di tombol = tombol Latin yang ditekan · garis putus-putus = tahan Shift</p>
+    <div class="finishbar"><button id="btnFinish" class="danger">Selesai</button></div>
+  </section>
+</main>
+
+<!-- HASIL -->
+<div id="result" class="modal" hidden><div class="card">
+  <div id="rStars" class="stars"></div>
+  <h2 id="rTitle">Hasil</h2>
+  <div id="rGrid" class="rgrid"></div>
+  <p id="rExtra" class="extra"></p>
+  <div class="cta"><button class="primary" id="rAgain">Ulangi</button><button id="rClose">Selesai</button></div>
+</div></div>
+
+<!-- GANTI PENGGUNA -->
+<div id="newUser" class="modal" hidden><div class="card">
+  <h2>Ganti pengguna?</h2>
+  <p>Semua data pengguna ini di perangkat ini akan <b>dihapus</b>: nama, poin, peringkat, lencana, riwayat sesi, serta hasil pre-test dan post-test. Data tidak bisa dikembalikan, dan pengguna berikutnya mulai dari awal.</p>
+  <p class="note">Simpan dulu laporannya kalau masih dibutuhkan.</p>
+  <div class="cta"><button id="nuCsv">Unduh laporan (CSV)</button><button id="nuPrint">Cetak laporan</button></div>
+  <div class="cta"><button class="danger" id="nuYes">Ya, hapus dan mulai pengguna baru</button><button class="primary" id="nuNo">Batal</button></div>
+</div></div>
+
+<!-- KONFIRMASI SELESAI -->
+<div id="confirm" class="modal" hidden><div class="card">
+  <h2>Selesaikan sekarang?</h2>
+  <p id="cfText">Apakah Anda yakin ingin menyelesaikannya? Hasil sampai saat ini akan dihitung.</p>
+  <div class="cta"><button class="danger" id="cfYes">Ya, selesaikan</button><button class="primary" id="cfNo">Lanjutkan</button></div>
+</div></div>
+
+<!-- PILIH MATERI PERTEMUAN -->
+<div id="meet" class="modal" hidden><div class="card wide">
+  <h2 id="mTitle"></h2>
+  <p class="note" id="mSub"></p>
+  <div class="chips" id="mChips"></div>
+  <div id="mOpts" class="levels"></div>
+  <p class="note" id="mPr"></p>
+  <div class="cta"><button id="mClose">Tutup</button></div>
+</div></div>
+
+<!-- PENGATURAN -->
+<div id="settings" class="modal" hidden><div class="card">
+  <h2>Pengaturan</h2>
+  <label class="fld">Nama <input id="sName" maxlength="24"></label>
+  <label class="fld">Mode keyboard
+    <select id="sKb"><option value="builtin">Keyboard Arab bawaan situs (disarankan)</option><option value="system">Keyboard sistem (Arabic 101)</option></select></label>
+  <label class="chk"><input type="checkbox" id="sSound"> Efek suara</label>
+  <label class="chk"><input type="checkbox" id="sShowKb"> Tampilkan papan tombol &amp; petunjuk tombol</label>
+  <div class="cta"><button class="primary" id="sClose">Simpan</button><button class="danger" id="sReset">Ganti pengguna (hapus data)</button></div>
+</div></div>
+
+<script src="js/data.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/game.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
