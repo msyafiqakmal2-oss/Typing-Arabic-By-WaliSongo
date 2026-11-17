@@ -14,6 +14,7 @@
     <button data-view="home" class="on">Beranda</button>
     <button data-view="tutorial">Tutorial Learning</button>
     <button data-view="self">Self Learning</button>
+    <button data-view="board">Klasemen</button>
     <button data-view="test">Pre/Post-test</button>
     <button data-view="report">Laporan</button>
     <button data-view="guide">Panduan</button>
@@ -35,13 +36,15 @@
         <p class="greet" id="greet"></p>
         <h1>Ketik Arab tanpa melihat keyboard.</h1>
         <p class="lead">Naikkan peringkat dari <b>Mubtadi’</b> sampai <b>Ustadz</b>: kumpulkan poin, bintang, lencana, dan jaga api streak harianmu.</p>
-        <label class="name">Namamu <input id="nameIn" maxlength="24" placeholder="mis. Ahmad"></label>
+        <div class="namerow"><label class="name">Namamu <input id="nameIn" maxlength="24" placeholder="mis. Ahmad"></label><button class="primary" id="btnLogin" hidden>Masuk</button></div>
+        <p class="note" id="cloudStat"></p>
         <div class="cta">
           <button class="primary" id="btnContinue">Lanjut latihan</button>
           <button data-go="self">Self Learning</button>
           <button data-go="test">Pre-test</button>
           <button id="btnNewUser">Pengguna baru</button>
         </div>
+        <p class="note homerank" id="homeRank"></p>
       </div>
       <div class="arch">
         <svg class="fanous" viewBox="0 0 40 80" width="44" aria-hidden="true"><line x1="20" y1="0" x2="20" y2="14" stroke="#e2b34f"/><path d="M14 14h12l3 8H11z" fill="#e2b34f"/><path d="M11 22h18l4 22-13 14L7 44z" fill="#2bb5a0" fill-opacity=".85" stroke="#e2b34f"/><path d="M20 24v32M13 30l7 26M27 30l-7 26" stroke="#e2b34f" stroke-opacity=".6" fill="none"/><path d="M16 58h8l-4 10z" fill="#e2b34f"/></svg>
@@ -77,6 +80,15 @@
       <div class="gamewrap"><canvas id="gameCv"></canvas><div id="gameOverlay" class="overlay" hidden></div></div>
       <div class="finishbar"><button id="gameFinish" class="danger">Selesai</button></div>
     </div>
+  </section>
+
+  <!-- KLASEMEN -->
+  <section id="v-board" class="view" hidden>
+    <h1>Klasemen</h1>
+    <p class="lead">Peringkat siswa berdasarkan total poin. Kerjakan latihan dan game untuk naik ke puncak!</p>
+    <p id="boardMe" class="boardme"></p>
+    <div id="boardBody"></div>
+    <div class="cta"><button id="boardRefresh">Perbarui klasemen</button></div>
   </section>
 
   <!-- TEST -->
@@ -115,13 +127,13 @@
       <p class="legend"><span class="f0">Kelingking</span><span class="f1">Jari manis</span><span class="f2">Jari tengah</span><span class="f3">Telunjuk</span><span class="f4">Jempol (spasi)</span></p></details>
     <details><summary>Rumus penilaian</summary>
       <ul><li><b>WPM</b> = karakter diketik ÷ 5 ÷ menit</li><li><b>CPM</b> = seluruh karakter ÷ menit</li><li><b>Correct CPM</b> = karakter benar ÷ menit</li><li><b>Akurasi</b> = karakter benar ÷ total × 100%</li><li><b>Kesalahan</b> = karakter salah ÷ total × 100%</li></ul>
-      <p>Karakter dibandingkan per posisi dengan teks sumber. Menghapus (Backspace) dan memperbaiki diperbolehkan; yang dihitung adalah hasil akhir.</p></details>
+      <p>Karakter dibandingkan per posisi dengan teks sumber. Yang dihitung adalah hasil akhir. <b>Backspace</b> boleh dipakai di <b>Tutorial Learning</b> (Level 1–5 dan Program 10 Hari) untuk belajar memperbaiki ketikan, tetapi <b>dinonaktifkan</b> di Pre-test, Post-test, dan Balapan Paragraf (Self Learning). Urutan harakat dan syaddah tidak dipermasalahkan.</p></details>
     <details><summary>Poin, bintang, peringkat, lencana, streak</summary>
-      <ul><li><b>Poin</b> = (Correct CPM × akurasi) ÷ 10 + 5 per bintang + 1 per 10 combo + 10 jika lebih baik dari sesi sebelumnya. Tes memberi 20 poin.</li><li><b>Bintang</b>: ★ ≥ 80%, ★★ ≥ 90%, ★★★ ≥ 95%.</li><li><b>Peringkat</b>: Mubtadi’ (0) → Thalib (100) → Katib (300) → Adib (700) → Khattat (1500) → Ustadz (3000).</li><li><b>Combo</b>: jumlah huruf benar beruntun. Combo 50 membuka lencana.</li><li><b>Streak</b>: berlatih tiap hari menambah 🔥. Lewat sehari, streak mulai lagi dari 1.</li><li><b>Lencana</b>: lihat syarat di halaman Laporan; contoh “Teliti” = akurasi ≥ 95%.</li></ul></details>
+      <ul><li><b>Poin latihan</b> (Tutorial Learning) = (Correct CPM × akurasi) ÷ 10 + 5 per bintang + 1 per 10 combo + 10 jika Correct CPM lebih tinggi dari sesi sebelumnya. <b>Tes</b> memberi 20 poin tetap. <b>Game Self Learning</b>: poin = skor ÷ 8; menang Balapan Paragraf +20.</li><li><b>Bintang</b>: ★ ≥ 80%, ★★ ≥ 90%, ★★★ ≥ 95%.</li><li><b>Peringkat</b>: Mubtadi’ (0) → Thalib (100) → Katib (300) → Adib (700) → Khattab (1500) → Ustadz (3000).</li><li><b>Combo</b>: jumlah huruf benar beruntun. Combo 50 membuka lencana.</li><li><b>Streak</b>: berlatih tiap hari menambah 🔥. Lewat sehari, streak mulai lagi dari 1.</li><li><b>Lencana</b>: lihat syarat di halaman Laporan; contoh “Teliti” = akurasi ≥ 95%.</li></ul></details>
     <details><summary>Mode latihan</summary>
-      <ul><li><b>Tutorial Learning › Level 1–5</b>: huruf → kata pendek 2–3 huruf (tangan kiri → tangan kanan → gabungan) → kata → kalimat → paragraf.</li><li><b>Self Learning</b>: satu game per level: <b>Hujan Huruf</b> (L1), <b>Tebak Gambar</b> (L2), <b>Bom Waktu</b> (L3), <b>Pelari Rintangan</b> (L4), dan <b>Balapan Paragraf</b> melawan robot (L5). Tombol <b>Selesai</b> di bagian bawah mengakhiri sesi setelah konfirmasi, dan hasil sampai saat itu tetap dihitung.</li><li><b>Tutorial Learning › Program 10 Hari</b>: tiap hari = satu pertemuan modul: 1–5 huruf per kelompok jari, 6 huruf acak, 7 dua dan tiga huruf, 8 empat huruf atau lebih, 9 kalimat (tanpa dan dengan harakat), 10 teks bertingkat dan post-test. Klik hari untuk memilih materi, dan pilih nomor pertemuan sebelumnya untuk mengulang.</li><li><b>Pre/Post-test</b>: satu paragraf yang sama, maks. 3 menit, hasilnya masuk Laporan.</li></ul></details>
+      <ul><li><b>Keyboard di layar</b> tampil di Level 1, Program 10 Hari, Pre-test, dan Self Learning; disembunyikan di Tutorial Level 2–5 dan Post-test agar kamu belajar tanpa melihat tombol.</li><li><b>Tutorial Learning › Level 1–5</b>: huruf → kata pendek 2–3 huruf (tangan kiri → tangan kanan → gabungan) → kata → kalimat → paragraf.</li><li><b>Self Learning</b>: satu game per level: <b>Hujan Huruf</b> (L1), <b>Tebak Gambar</b> (L2), <b>Bom Waktu</b> (L3), <b>Pelari Rintangan</b> (L4), dan <b>Balapan Paragraf</b> melawan robot (L5). Tombol <b>Selesai</b> di bagian bawah mengakhiri sesi setelah konfirmasi, dan hasil sampai saat itu tetap dihitung.</li><li><b>Tutorial Learning › Program 10 Hari</b>: tiap hari = satu pertemuan modul: 1–5 huruf per kelompok jari, 6 huruf acak, 7 dua dan tiga huruf, 8 empat huruf atau lebih, 9 kalimat (tanpa dan dengan harakat), 10 teks bertingkat dan post-test. Klik hari untuk memilih materi, dan pilih nomor pertemuan sebelumnya untuk mengulang.</li><li><b>Pre/Post-test</b>: satu paragraf yang sama, maks. 3 menit, hasilnya masuk Laporan.</li></ul></details>
     <details><summary>Tips &amp; tanya-jawab</summary>
-      <ul><li>Utamakan akurasi dulu, kecepatan akan menyusul.</li><li>Jangan melirik keyboard; lihat teks di layar.</li><li>Berlatih 10–15 menit tiap hari lebih efektif daripada sekali lama.</li><li><b>Data disimpan di mana?</b> Hanya di browser perangkat ini, tanpa database dan tanpa server. Bila ada orang lain yang mau memakai, tekan <b>Pengguna baru</b> (Beranda) atau <b>Ganti pengguna</b> (Laporan): semua data pengguna sebelumnya dihapus dan tidak bisa dikembalikan. Unduh CSV atau cetak laporan dulu bila masih dibutuhkan.</li><li><b>Teks tidak bisa ditempel (paste)?</b> Memang dinonaktifkan agar tes adil.</li></ul></details>
+      <ul><li>Utamakan akurasi dulu, kecepatan akan menyusul.</li><li>Jangan melirik keyboard; lihat teks di layar.</li><li>Berlatih 10–15 menit tiap hari lebih efektif daripada sekali lama.</li><li><b>Data disimpan di mana?</b> Hanya di browser perangkat ini, tanpa database dan tanpa server. Bila ada orang lain yang mau memakai, tekan <b>Pengguna baru</b> (Beranda) atau <b>Ganti pengguna</b> (Laporan): semua data pengguna sebelumnya dihapus dan tidak bisa dikembalikan. Unduh CSV atau cetak laporan dulu bila masih dibutuhkan. Jika database dihubungkan (lihat FIREBASE-SETUP.md), data tersimpan di server: masukkan nama yang sama lalu tekan <b>Masuk</b> untuk melanjutkan dari perangkat mana pun, dan lihat posisimu di menu <b>Klasemen</b>.</li><li><b>Teks tidak bisa ditempel (paste)?</b> Memang dinonaktifkan agar tes adil.</li></ul></details>
   </section>
 
   <!-- AREA MENGETIK -->
@@ -132,6 +144,7 @@
       <div class="live"><span>Waktu <b id="lvTime">0:00</b></span><span>WPM <b id="lvWpm">0</b></span><span>Akurasi <b id="lvAcc">100%</b></span><span id="combo" class="combo"></span></div>
     </div>
     <div class="bar"><i id="prog"></i></div>
+    <div id="bsNote" class="bsnote"></div>
     <div id="race" class="race" hidden><div><span>Kamu</span><b><i id="raceMe"></i></b></div><div><span>Robot 🤖</span><b><i id="raceBot"></i></b></div></div>
     <div id="kbWarn" class="warn" hidden>Huruf Latin terdeteksi. Aktifkan “Keyboard Arab bawaan” di ⚙ Pengaturan atau ganti keyboard sistem ke Arabic.</div>
     <div id="target" class="target" dir="rtl" lang="ar"></div>
@@ -154,8 +167,9 @@
 <!-- GANTI PENGGUNA -->
 <div id="newUser" class="modal" hidden><div class="card">
   <h2>Ganti pengguna?</h2>
-  <p>Semua data pengguna ini di perangkat ini akan <b>dihapus</b>: nama, poin, peringkat, lencana, riwayat sesi, serta hasil pre-test dan post-test. Data tidak bisa dikembalikan, dan pengguna berikutnya mulai dari awal.</p>
+  <p id="nuText">Semua data pengguna ini di perangkat ini akan <b>dihapus</b>: nama, poin, peringkat, lencana, riwayat sesi, serta hasil pre-test dan post-test. Data tidak bisa dikembalikan, dan pengguna berikutnya mulai dari awal.</p>
   <p class="note">Simpan dulu laporannya kalau masih dibutuhkan.</p>
+  <p class="note nuwarn" id="nuWarn"></p>
   <div class="cta"><button id="nuCsv">Unduh laporan (CSV)</button><button id="nuPrint">Cetak laporan</button></div>
   <div class="cta"><button class="danger" id="nuYes">Ya, hapus dan mulai pengguna baru</button><button class="primary" id="nuNo">Batal</button></div>
 </div></div>
@@ -188,9 +202,12 @@
   <div class="cta"><button class="primary" id="sClose">Simpan</button><button class="danger" id="sReset">Ganti pengguna (hapus data)</button></div>
 </div></div>
 
+<script src="js/materi.js"></script>
 <script src="js/data.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/game.js"></script>
+<script src="js/config.js"></script>
+<script src="js/cloud.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

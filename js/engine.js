@@ -48,7 +48,8 @@ function gen(kind, n=40){
     case "s_n": case "sent": return shuffle(SENT).map(strip).join(" ");
     case "p_s": case "p_m": case "p_l": return rnd(PARA[kind[2]]);
     case "para": return rnd(PARA.m);
-    case "test": return TEST_TEXT;   // satu paragraf, sama untuk pre & post
+    case "test": case "test_pre": return PRETEST_TEXT;       // satu paragraf (diisi tutor di js/materi.js)
+    case "test_post": return POSTTEST_TEXT;
   }
   return "";
 }
@@ -86,12 +87,16 @@ const Engine = (()=>{
   let S = null;
   const MARK = /[\u064B-\u0652]/;
 
+  // urutan harakat/syaddah tidak dipermasalahkan: tanda yang berurutan diurutkan sebelum dibandingkan
+  const canon = s => s.replace(/[\u064B-\u0652\u0670]+/g, m => [...m].sort().join(""));
   function start(opt){
     if (S) clearInterval(S.tick);
-    S = {...opt, t0:null, done:false, tick:null, combo:0, maxCombo:0, prevLen:0};
+    S = {...opt, text:canon(opt.text), t0:null, done:false, tick:null, combo:0, maxCombo:0, prevLen:0, lastVal:"", bs:opt.backspace !== false};
     $("stTitle").textContent = opt.title;
     $("input").value = ""; $("input").disabled = false; $("combo").textContent = ""; $("kbWarn").hidden = true;
-    $("kb").hidden = !DB.settings.showKb;
+    $("kb").hidden = !(opt.kb !== false && DB.settings.showKb);
+    $("kbModeLbl").parentElement.hidden = $("kb").hidden;
+    $("bsNote").textContent = S.bs ? "✏️ Backspace aktif: kamu boleh memperbaiki ketikan." : "🚫 Backspace dinonaktifkan: ketik dengan teliti.";
     $("race").hidden = !opt.race;
     drawKeyboard(); renderTarget(""); renderLive(); highlight("");
     $("input").focus();
@@ -123,13 +128,14 @@ const Engine = (()=>{
   function onInput(){
     if (!S || S.done || S.paused) return;
     const el = $("input");
+    if (!S.bs && el.value.length < S.prevLen){ el.value = S.lastVal; return; }          // Backspace dimatikan: kembalikan
     // pengaman: pada mode bawaan, huruf Latin yang lolos diubah ke huruf Arab sesuai tombol fisiknya
     // (huruf & simbol Latin yang diketik langsung oleh browser; hanya bagian baru, bukan tanda baca yang sah dari keyboard bawaan)
     if (DB.settings.kb === "builtin" && !S.ins && el.value.length > S.prevLen){
       const head = el.value.slice(0, S.prevLen), tail = el.value.slice(S.prevLen);
       el.value = head + tail.replace(LATIN_RE, ch => LATIN[ch] ?? ch);
     }
-    const typed = el.value;
+    const raw = el.value, typed = canon(raw); S.lastVal = raw;
     if (!S.t0){ S.t0 = Date.now(); S.tick = setInterval(()=>{ renderLive(); if ((S.duration && elapsed()>=S.duration) || (S.race && botProg()>=1)) finish(); },250); }
     let c = 0; for (let i=typed.length-1;i>=0 && typed[i]===S.text[i];i--) c++;
     S.combo = c; S.maxCombo = Math.max(S.maxCombo,c);
@@ -147,7 +153,7 @@ const Engine = (()=>{
   function finish(){
     if (S.done) return; S.done = true; clearInterval(S.tick);
     $("input").disabled = true;
-    const typed = $("input").value.slice(0,S.text.length);
+    const typed = canon($("input").value).slice(0,S.text.length);
     const m = metrics(typed, S.text, S.duration ? Math.min(elapsed(),S.duration) : elapsed());
     m.maxCombo = S.maxCombo; m.early = !!S.early;
     S.onFinish(m);
@@ -170,6 +176,7 @@ const Engine = (()=>{
   function onKey(e){
     if (!S || S.done) return;
     if (S.paused){ e.preventDefault(); return; }
+    if (!S.bs && (e.key === "Backspace" || e.key === "Delete" || ((e.ctrlKey || e.metaKey) && /^[zyx]$/i.test(e.key)))){ e.preventDefault(); return; }
     if (["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End","Enter"].includes(e.key)){ e.preventDefault(); return; }
     if (DB.settings.kb !== "builtin" || e.ctrlKey || e.metaKey || e.altKey) return;
     let m = CODE_MAP[e.code];
@@ -180,6 +187,7 @@ const Engine = (()=>{
   }
   // cadangan terakhir: cegah karakter Latin masuk langsung, ganti dengan huruf Arab
   function onBeforeInput(e){
+    if (S && !S.done && !S.bs && /^(delete|history)/.test(e.inputType)){ e.preventDefault(); return; }
     if (!S || S.done || S.paused || DB.settings.kb !== "builtin" || e.inputType !== "insertText" || !e.data || [...e.data].length !== 1) return;
     if (LATIN[e.data] === undefined) return;
     e.preventDefault(); insert(LATIN[e.data]);

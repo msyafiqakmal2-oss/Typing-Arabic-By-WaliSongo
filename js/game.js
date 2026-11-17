@@ -28,12 +28,31 @@ const Game = (()=>{
     const r = h/2; cx.beginPath(); cx.moveTo(x-w/2+r,y-h/2); cx.lineTo(x+w/2-r,y-h/2); cx.arc(x+w/2-r,y,r,-Math.PI/2,Math.PI/2);
     cx.lineTo(x-w/2+r,y+h/2); cx.arc(x-w/2+r,y,r,Math.PI/2,Math.PI*1.5); cx.closePath(); cx.fillStyle = fill; cx.fill();
   }
-  // teks Arab dengan bagian yang sudah diketik diwarnai (dari kanan ke kiri, tanpa memutus sambungan huruf)
-  function progText(t, x, y, size, frac, c1, c2, maxW){
-    cx.textAlign = "center"; cx.textBaseline = "middle";
-    do { cx.font = `700 ${size}px Amiri, serif`; size -= 2; } while (maxW && cx.measureText(t).width > maxW && size > 14);
+  // Batas huruf yang tepat: posisi tiap huruf diukur lewat elemen DOM tersembunyi (huruf Arab tetap menyambung),
+  // sehingga warna "sudah diketik" berhenti persis di huruf terakhir yang diketik, tidak melebar ke huruf berikutnya.
+  const MEAS = {box:null, cache:new Map()};
+  function typedWidths(t, font){
+    const key = font+"|"+t; let m = MEAS.cache.get(key);
+    if (!m){
+      if (!MEAS.box){ const b = document.createElement("span"); b.setAttribute("aria-hidden","true"); b.dir = "rtl";
+        b.style.cssText = "position:fixed;left:-9999px;top:0;visibility:hidden;white-space:pre;pointer-events:none"; document.body.appendChild(b); MEAS.box = b; }
+      const b = MEAS.box; b.style.font = font; b.textContent = t; const node = b.firstChild;
+      m = {total:b.getBoundingClientRect().width, at:[0]};
+      for (let k=1;k<=t.length;k++){ const r = document.createRange(); r.setStart(node,0); r.setEnd(node,k); m.at.push(r.getBoundingClientRect().width); }
+      if (MEAS.cache.size > 300) MEAS.cache.clear(); MEAS.cache.set(key, m);
+    }
+    return m;
+  }
+  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", ()=>MEAS.cache.clear());
+  // teks Arab dengan i huruf pertama (dari kanan) diwarnai
+  function progText(t, x, y, size, i, c1, c2, maxW){
+    cx.textAlign = "center"; cx.textBaseline = "middle"; let font;
+    do { font = `700 ${size}px Amiri, serif`; cx.font = font; size -= 2; } while (maxW && cx.measureText(t).width > maxW && size > 14);
     const w = cx.measureText(t).width; cx.fillStyle = c1; cx.fillText(t,x,y);
-    if (frac > 0){ cx.save(); cx.beginPath(); cx.rect(x+w/2-w*frac-1, y-80, w*frac+2, 160); cx.clip(); cx.fillStyle = c2; cx.fillText(t,x,y); cx.restore(); }
+    if (i > 0){
+      const m = typedWidths(t, font), px = m.total ? m.at[Math.min(i,t.length)] * w / m.total : 0;
+      cx.save(); cx.beginPath(); cx.rect(x+w/2-px, y-80, px+1, 160); cx.clip(); cx.fillStyle = c2; cx.fillText(t,x,y); cx.restore();
+    }
     return w;
   }
   const hint = (ch, x, y) => { if (!DB.settings.showKb) return; const k = CHAR_KEY[ch]; if (!k) return;
@@ -134,7 +153,7 @@ const Game = (()=>{
     draw(){
       bg("#1a0f2e","#2a1442"); const c = st.cur, r = c.f/c.max, now = performance.now()/1000;
       pill(W/2,100,Math.min(W-40,Math.max(220,c.t.length*34+60)),84,"rgba(255,255,255,.08)");
-      progText(c.t, W/2, 100, 54, c.i/c.t.length, c.ok ? "#5fe0c8" : "#f3ecd8", "#5fe0c8", W-120);
+      progText(c.t, W/2, 100, 54, c.i, c.ok ? "#5fe0c8" : "#f3ecd8", "#5fe0c8", W-120);
       hint(c.t[c.i], W/2, 160);
       const dx = c.rev>0 || r>.35 ? 0 : Math.sin(now*60)*(1-r*2)*5;
       cx.textAlign = "center"; cx.textBaseline = "middle"; cx.font = `120px ${EMOJI}`; cx.fillStyle = "#fff";
@@ -175,7 +194,7 @@ const Game = (()=>{
       const c = st.cur;
       // panel teks target
       pill(W/2,92,W-60,96,"rgba(8,16,44,.78)");
-      progText(c.t, W/2, 88, c.t.length>20?30:40, c.i/c.t.length, "#f3ecd8", "#5fe0c8", W-110);
+      progText(c.t, W/2, 88, c.t.length>20?30:40, c.i, "#f3ecd8", "#5fe0c8", W-110);
       hint(c.t[c.i], W/2, 124);
       bar(60,142,W-120,5,(c.x-RUNX)/(W+20-RUNX),"#ef4444");
       // rintangan & pelari
@@ -222,6 +241,7 @@ const Game = (()=>{
   }
   function key(e){
     if (!st || st.over || st.paused || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === "Backspace" || e.key === "Delete"){ e.preventDefault(); return; }   // game: tidak ada Backspace
     let chars;
     if (e.code === "Space") chars = " ";
     else { const m = CODE_MAP[e.code];

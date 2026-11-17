@@ -3,23 +3,6 @@ const strip = s => s.replace(/[\u064B-\u0652]/g, "");
 const LETTERS = "ابتثجحخدذرزسشصضطظعغفقكلمنهوي".split("");
 const HOME = "شسيبلاتنمك".split("");
 
-const WORDS = {
-  s: ["أب","أم","بيت","باب","كتب","علم","نور","ماء","قلم","ولد","بنت","شمس","قمر","نهر","جبل","خبز","ورد","يد","رجل","عين"],
-  m: ["مدرسة","مكتبة","طالب","معلم","حديقة","سيارة","طعام","صديق","مسجد","كتاب","مفتاح","نافذة","شجرة","سماء","طريق","مدينة"],
-  l: ["استخدام","مستقبل","اجتماعي","اللغة","العربية","مجتمع","الحاسوب","الإنسان","المعلومات","الجامعة","التعليم","المسؤولية"]
-};
-
-const SENT = [
-  "الْعِلْمُ نُورٌ وَالْجَهْلُ ظَلَامٌ",
-  "ذَهَبَ الطَّالِبُ إِلَى الْمَدْرَسَةِ صَبَاحًا",
-  "اللُّغَةُ الْعَرَبِيَّةُ لُغَةُ الْقُرْآنِ الْكَرِيمِ",
-  "يَقْرَأُ الْوَلَدُ كِتَابًا جَدِيدًا فِي الْمَكْتَبَةِ",
-  "الْوَقْتُ كَالسَّيْفِ إِنْ لَمْ تَقْطَعْهُ قَطَعَكَ",
-  "مَنْ جَدَّ وَجَدَ وَمَنْ زَرَعَ حَصَدَ",
-  "تَعَلَّمْ مَهَارَةَ الْكِتَابَةِ بِالْحَاسُوبِ كُلَّ يَوْمٍ",
-  "الصَّدِيقُ وَقْتَ الضِّيقِ"
-];
-
 /* ===== Kata bermakna 2–3 huruf, disusun sesuai pola belajar: tangan kiri → tangan kanan → gabungan ===== */
 const HAND_L = "ذضصثقفشسيبلرئءؤ", HAND_R = "غعهخحجداتنمكطىةوزظ";
 const W2 = {
@@ -34,18 +17,7 @@ const W2 = {
 const HOMEW = ["بيت","ليل","سبب","كتب","نمل","ملك","تين","سمك","كان","شمس","كلب","لبن","ابن","بنت","سلم","مسك","نيل","بسم","سكن","سبت","كتاب","مكتب","سكين","بستان","لسان","مسلم","كسل"];
 const ALLW = [...W2.l[2],...W2.l[3],...W2.r[2],...W2.r[3],...W2.m[2],...W2.m[3],...HOMEW];
 
-const PARA = {
-  s: ["أنا طالب في المدرسة. أحب القراءة كل يوم. في البيت مكتبة صغيرة فيها كتب كثيرة. أقرأ مع أبي وأمي بعد الغداء.",
-      "ذهب أحمد إلى السوق مع أمه. اشترى خبزا وماء وفاكهة. ثم رجع إلى البيت وأكل مع أسرته."],
-  m: ["اللغة العربية من أجمل اللغات في العالم، وهي لغة القرآن الكريم. يتعلم الطلاب الكتابة بها في المدارس والجامعات، ويستخدمون الحاسوب لكتابة الرسائل والبحوث. ومن المهم أن يتقن الطالب الكتابة بالأصابع العشرة لتوفير الوقت.",
-      "تعد المكتبة مكانا مناسبا للدراسة والمطالعة. يجلس الطلاب حول الطاولات ويقرؤون الكتب بهدوء، ويستعير بعضهم كتبا ليقرؤوها في البيت."],
-  l: ["إن التقدم التقني في عصرنا الحاضر أتاح للإنسان وسائل متنوعة لنشر المعرفة وتبادل المعلومات بين المجتمعات المختلفة. ومن هنا أصبحت مهارة الطباعة الصحيحة بالحاسوب ضرورة علمية ومهنية، لأنها تختصر الجهد وتزيد الإنتاجية وتحسن جودة العمل الأكاديمي والإداري على حد سواء.",
-      "يرى كثير من الباحثين أن الممارسة اليومية المنتظمة، ولو لمدة قصيرة، أفضل أثرا من التدريب الطويل المتقطع؛ فالمهارات الحركية تتثبت بالتكرار والتركيز والتغذية الراجعة الفورية عن الأخطاء."]
-};
-
 const PHR = { s:["العلم نور","من جد وجد","من زرع حصد","الوقت كالسيف","الصديق وقت الضيق","نتعلم كل يوم"], m:SENT.map(strip) };
-// Pre/Post-test: SATU paragraf yang sama agar hasil sebelum–sesudah bisa dibandingkan adil
-const TEST_TEXT = PARA.m[0];
 
 /* Layout Arabic (101): [event.code, huruf, label shift, jari 0=kelingking … 3=telunjuk, 4=jempol] */
 const KB_ROWS = [
@@ -81,11 +53,6 @@ const SELF = [
 ];
 
 /* ===== Tebak Gambar: [emoji, kata Arab, arti] — kata konkret, dikelompokkan per tangan ===== */
-const PICS = {
-  l:[["❤️","قلب","hati"],["⚡","برق","kilat"],["🐎","فرس","kuda"],["🌃","ليل","malam"],["✈️","سفر","perjalanan"],["🥤","شرب","minum"],["🕳️","ثقب","lubang"],["⭕","صفر","nol"],["🛑","قف","berhenti!"],["👊","ضرب","memukul"],["👓","بصر","penglihatan"],["🧘","صبر","sabar"],["🤫","سر","rahasia"]],
-  r:[["👴","جد","kakek"],["👵","جدة","nenek"],["🕋","حج","haji"],["🩸","دم","darah"],["⭐","نجم","bintang"],["😴","نوم","tidur"],["😢","دمع","air mata"],["👑","تاج","mahkota"],["🍑","خوخ","persik"],["😔","حزن","sedih"],["📅","عام","tahun"],["🍽️","جوع","lapar"],["🌴","جنة","surga"],["👨","عم","paman"]],
-  m:[["✋","يد","tangan"],["👄","فم","mulut"],["🦷","سن","gigi"],["🐻","دب","beruang"],["😍","حب","cinta"],["✏️","قلم","pena"],["🏠","بيت","rumah"],["☀️","شمس","matahari"],["🌕","قمر","bulan"],["⛰️","جبل","gunung"],["🏞️","نهر","sungai"],["🌹","ورد","mawar"],["🍞","خبز","roti"],["👁️","عين","mata"],["🐕","كلب","anjing"],["🏪","سوق","pasar"],["🌊","بحر","laut"],["🌳","شجر","pohon"],["🥇","ذهب","emas"],["👕","ثوب","baju"],["🚪","باب","pintu"],["📚","كتب","buku"],["💡","نور","cahaya"],["👦","ولد","anak laki-laki"],["📖","درس","pelajaran"],["🎨","فن","seni"]]
-};
 
 /* ===== PROGRAM 10 HARI = 10 pertemuan sesuai Modul Pelatihan Arabic Touch Typing =====
    Tiap pertemuan punya beberapa materi: [id, nama, keterangan, (penanda "post" = post-test)] */
@@ -127,7 +94,7 @@ const CODE_MAP = {Backquote:{n:"ذ", s:"ّ"}};
 KB_ROWS.forEach(r => r.forEach(([c, n, s]) => { CODE_MAP[c] = {n, s}; }));
 const KEYNAMES = {BracketLeft:"[",BracketRight:"]",Semicolon:";",Quote:"'",Comma:",",Period:".",Slash:"/",Backquote:"`",Space:"Spasi"};
 const keyName = c => KEYNAMES[c] || c.replace("Key","");
-const RANKS = [[0,"Mubtadi’","مبتدئ","Pemula"],[100,"Thalib","طالب","Pelajar"],[300,"Katib","كاتب","Penulis"],[700,"Adib","أديب","Sastrawan"],[1500,"Khattat","خطّاط","Kaligrafer"],[3000,"Ustadz","أستاذ","Maestro"]];
+const RANKS = [[0,"Mubtadi’","مبتدئ","Pemula"],[100,"Thalib","طالب","Pelajar"],[300,"Katib","كاتب","Penulis"],[700,"Adib","أديب","Sastrawan"],[1500,"Khattab","خطّاط","Kaligrafer"],[3000,"Ustadz","أستاذ","Maestro"]];
 BADGES.push({id:"hujan",name:"Pemburu huruf",how:"Skor ≥ 200 di Self Learning"},{id:"combo",name:"Combo 50",how:"50 huruf benar beruntun"},{id:"streak3",name:"Api semangat",how:"Streak 3 hari"});
 
 /* peta karakter Latin (QWERTY US) -> karakter Arab; dipakai bila browser tidak memberi kode tombol */
@@ -136,3 +103,16 @@ const LATIN = {};
   Object.entries(CODE_MAP).forEach(([c,m])=>{ const l = SYM[c] || (/^Key[A-Z]$/.test(c) ? [c[3].toLowerCase(), c[3]] : null);
     if (l){ LATIN[l[0]] = m.n; LATIN[l[1]] = m.s; } }); })();
 const LATIN_RE = /[A-Za-z`\[\];',.\/~{}:"<>?]/g;
+
+/* ===== ATURAN PEMBELAJARAN (bisa diubah tutor: true = diizinkan/ditampilkan, false = dimatikan) ===== */
+const POLICY = {
+  // Tombol Backspace/Delete. level = Tutorial Learning Level 1–5, daily = Program 10 Hari, race = Balapan Paragraf (Self Learning)
+  backspace: {level:true, daily:true, pretest:false, posttest:false, race:false},
+  // Keyboard di layar (tetap mengikuti pengaturan ⚙ siswa; false di sini = selalu disembunyikan)
+  keyboard:  {level1:true, level2:false, level3:false, level4:false, level5:false, daily:true, pretest:true, posttest:false, race:true}
+};
+const policyFor = ({mode, sub}) => {
+  const k = mode === "test" ? (sub === "post" ? "posttest" : "pretest") : mode;          // level1..5, daily, race, pretest, posttest
+  const bk = String(k).startsWith("level") ? "level" : k;
+  return {backspace: POLICY.backspace[bk] !== false, kb: POLICY.keyboard[k] !== false};
+};

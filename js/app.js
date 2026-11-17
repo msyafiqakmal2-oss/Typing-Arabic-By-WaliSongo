@@ -7,7 +7,7 @@ const DEF_JSON = JSON.stringify(DEF), fresh = () => JSON.parse(DEF_JSON);   // s
 let DB = (()=>{ try{ const s = JSON.parse(localStorage.getItem(KEY)); return {...fresh(), ...s, settings:{...DEF.settings, ...(s&&s.settings)}}; }
                  catch(e){ return fresh(); } })();
 if (!DB.v10){ DB.days = []; DB.v10 = 1; }      // program 14 hari diganti 10 pertemuan: mulai bersih
-const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){} };
+const save = quiet => { if (!quiet) DB.updated = Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){} if (!quiet) Cloud.touch(); };
 const f1 = n => (Math.round(n*10)/10).toString();
 const dayStr = d => d.toLocaleDateString("sv-SE");
 const today = () => dayStr(new Date());
@@ -22,7 +22,7 @@ function show(v){
   Game.stop();
   document.querySelectorAll(".view").forEach(e=>e.hidden = e.id !== "v-"+v);
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on", b.dataset.view===v));
-  ({home:renderHome, tutorial:renderTutorial, self:renderSelf, test:renderTest, report:renderReport})[v]?.();
+  ({home:renderHome, tutorial:renderTutorial, self:renderSelf, board:renderBoard, test:renderTest, report:renderReport})[v]?.();
   window.scrollTo(0,0);
 }
 document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>show(b.dataset.view));
@@ -103,17 +103,22 @@ function renderHome(){
   const nd = [...Array(10)].map((_,k)=>k+1).find(d=>!DB.days.includes(d));
   $("btnContinue").textContent = nd ? `Lanjut: Hari ${nd}` : "Ulangi program 10 hari";
   $("btnContinue").onclick = ()=>startDay(nd || 1);
+  renderCloudStat(); refreshHomeRank();
 }
-$("nameIn").onchange = e=>{ DB.settings.name = e.target.value.trim(); save(); renderHome(); };
+$("nameIn").onchange = e=>{ if (Cloud.enabled()) return; DB.settings.name = e.target.value.trim(); save(); renderHome(); };   // mode lokal: nama hanya label
+$("nameIn").addEventListener("keydown", e=>{ if (e.key === "Enter" && Cloud.enabled()){ e.preventDefault(); signIn(e.target.value); } });
+$("btnLogin").onclick = ()=>signIn($("nameIn").value);
 
 /* ---------- menjalankan sesi + hasil ---------- */
 function run({title, kind, mode, sub, duration, day, after, race}){
+  if (needName()) return;
   const cur = document.querySelector(".view:not([hidden])");
   if (cur && cur.id!=="v-stage") lastView = cur.id.slice(2);
   let curText = "";
+  const pol = policyFor({mode, sub});
   const restart = ()=>{
-    let text = gen(kind); if (duration && kind!=="test" && !race) while (text.length < duration*3) text += " " + gen(kind);
-    curText = text; show("stage"); Engine.start({title, text, duration, race, onFinish});
+    let text = gen(kind); if (duration && !kind.startsWith("test") && !race) while (text.length < duration*3) text += " " + gen(kind);
+    curText = text; show("stage"); Engine.start({title, text, duration, race, onFinish, backspace:pol.backspace, kb:pol.kb});
   };
   const onFinish = m => {
     const before = rankIdx(DB.points), key = sub||kind, st = starsOf(m.acc);
@@ -139,6 +144,7 @@ function openResult(o){
   const r = RANKS[rankIdx(DB.points)];
   $("rExtra").innerHTML = (o.note||"") + (o.pts?`+${o.pts} poin. `:"") + (o.rankUp?`<b>Naik peringkat: ${r[1]}!</b> `:"") + (o.got&&o.got.length?`Lencana baru: ${o.got.join(", ")}.`:"");
   $("result").hidden = false;
+  showRankInResult();
   if ((o.stars||0)>=2 || o.rankUp || (o.got&&o.got.length)){ confetti(); Sfx.win(); }
   $("rAgain").onclick = ()=>{ $("result").hidden = true; o.again(); };
   $("rClose").onclick = ()=>{ $("result").hidden = true; show(lastView); };
@@ -173,6 +179,7 @@ function renderSelf(){
     <div class="row"><div><b>Level ${l.id}: ${l.name}</b><p>${l.desc}</p></div>
     <div class="sub">${l.subs.map(([n,k,c])=>`<button data-sl="${l.id}" data-k="${k}"${c?` data-cps="${c}"`:""}>${n}</button>`).join("")}</div></div>`).join("");
   document.querySelectorAll("[data-sl]").forEach(b=>b.onclick=()=>{
+    if (needName()) return;
     const l = SELF[b.dataset.sl-1], n = b.textContent;
     if (l.race) run({title:`Balapan Paragraf – ${n}`, kind:b.dataset.k, mode:"race", sub:"race_"+b.dataset.k, duration:240, race:{cps:+b.dataset.cps}});
     else Game.start(b.dataset.k);
@@ -210,7 +217,7 @@ function startMeet(n, id){
   run({title:`Pertemuan ${n}: ${o[1]}`, kind:"mt_"+id, mode:"daily", sub:"mt_"+id, duration:600, day:n});
 }
 function runTest(which, day){
-  run({title: which==="pre"?"Pre-test (1 paragraf)":"Post-test (1 paragraf)", kind:"test", mode:"test", sub:which, duration:180, day, after:m=>{ DB[which] = m; }});
+  run({title: which==="pre"?"Pre-test (1 paragraf)":"Post-test (1 paragraf)", kind:which==="pre"?"test_pre":"test_post", mode:"test", sub:which, duration:180, day, after:m=>{ DB[which] = m; }});
 }
 function renderTest(){
   $("btnPre").onclick = ()=>runTest("pre"); $("btnPost").onclick = ()=>runTest("post");
@@ -251,13 +258,29 @@ function exportCsv(){
 $("btnCsv").onclick = exportCsv;
 
 /* ---------- ganti pengguna: hapus semua data di perangkat ini (tanpa database, jadi tidak ada yang tersimpan di tempat lain) ---------- */
-function askNewUser(){ $("settings").hidden = true; $("newUser").hidden = false; $("nuNo").focus(); }
-function resetUser(){
+let nuForce = false;
+function askNewUser(){
+  $("settings").hidden = true; nuForce = false; $("nuWarn").textContent = "";
+  const c = Cloud.enabled() && DB.settings.name;
+  $("nuText").innerHTML = c ? "Data kamu <b>sudah tersimpan di server</b>. Tombol ini hanya mengeluarkan akun dari perangkat ini, sehingga pengguna berikutnya mulai dari awal. Kamu bisa melanjutkan kapan saja dengan memasukkan namamu lagi lalu menekan <b>Masuk</b>."
+    : "Semua data pengguna ini di perangkat ini akan <b>dihapus</b>: nama, poin, peringkat, lencana, riwayat sesi, serta hasil pre-test dan post-test. Data tidak bisa dikembalikan, dan pengguna berikutnya mulai dari awal. <br><small>Saat ini aplikasi berjalan dalam <b>mode lokal</b>: data tidak tersimpan di server. Hubungkan database (lihat FIREBASE-SETUP.md) agar kemajuan siswa bisa dilanjutkan dan masuk klasemen.</small>";
+  $("nuYes").textContent = c ? "Ya, keluar dan ganti pengguna" : "Ya, hapus dan mulai pengguna baru";
+  $("newUser").hidden = false; $("nuNo").focus();
+}
+async function resetUser(){
+  if (Cloud.enabled() && DB.settings.name && !nuForce){          // pastikan data terkirim ke server dulu
+    $("nuWarn").textContent = "Mengirim data ke server…";
+    try{ await Cloud.flush(); }catch(e){}
+    if (Cloud.dirty()){ nuForce = true; $("nuWarn").textContent = "⚠ Sebagian data belum terkirim ke server (cek internet). Unduh CSV dulu, atau tekan lagi untuk tetap keluar.";
+      $("nuYes").textContent = "Tetap keluar dan hapus dari perangkat"; return; }
+    $("nuWarn").textContent = "";
+  }
   Engine.abort(); Game.stop(); $("result").hidden = true; $("confirm").hidden = true; $("meet").hidden = true;
   const keep = {kb:DB.settings.kb, sound:DB.settings.sound, showKb:DB.settings.showKb};   // pengaturan perangkat tetap
   DB = fresh(); Object.assign(DB.settings, keep); DB.v10 = 1; save();
   $("newUser").hidden = true; lastView = "home"; renderTop(); show("home");
-  $("greet").textContent = "Siap untuk pengguna baru! Isi namamu dulu."; $("nameIn").focus();
+  Cloud.setState(Cloud.enabled() ? "idle" : "off");
+  $("greet").textContent = Cloud.enabled() ? "Siap untuk pengguna baru! Isi namamu lalu tekan Masuk." : "Siap untuk pengguna baru! Isi namamu dulu."; $("nameIn").focus();
 }
 $("btnNewUser").onclick = askNewUser; $("btnNewUser2").onclick = askNewUser;
 $("nuCsv").onclick = exportCsv; $("nuPrint").onclick = ()=>window.print();
@@ -277,3 +300,87 @@ $("sClose").onclick = ()=>{
 $("sReset").onclick = askNewUser;
 
 renderTop(); renderHome();
+
+/* ===================== DATABASE CLOUD (opsional): masuk dengan nama, simpan otomatis, klasemen ===================== */
+const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const devPrefs = () => ({kb:DB.settings.kb, sound:DB.settings.sound, showKb:DB.settings.showKb});   // pengaturan perangkat tidak ikut berpindah
+const sortBoard = l => l.slice().sort((a,b)=>b.points-a.points || a.updated-b.updated);
+Cloud.setProvider(()=>({...DB, rankName:RANKS[rankIdx(DB.points)][1]}));
+
+function adopt(remote, name){                       // ganti data lokal dengan data dari server
+  DB = {...fresh(), ...remote.data, settings:{...DEF.settings, ...devPrefs(), name}}; DB.v10 = 1; DB.updated = remote.updated; save(true);
+}
+function renderCloudStat(){
+  const el = $("cloudStat"), b = $("btnLogin"), st = Cloud.state(), named = !!DB.settings.name;
+  b.hidden = !Cloud.enabled();
+  el.textContent = !Cloud.enabled() ? "Mode lokal: data hanya tersimpan di perangkat ini."
+    : !named ? "Isi namamu lalu tekan Masuk agar kemajuanmu tersimpan di server dan ikut klasemen."
+    : st === "saving" ? "☁ Menyimpan ke server…" : st === "offline" ? "⚠ Belum tersambung. Data aman di perangkat dan dikirim otomatis saat online."
+    : "☁ Kemajuanmu tersimpan di server.";
+}
+Cloud.onState(renderCloudStat);
+function needName(){
+  if (!Cloud.enabled() || DB.settings.name) return false;
+  show("home"); $("greet").textContent = "Isi namamu lalu tekan Masuk dulu agar kemajuanmu tersimpan."; $("nameIn").focus(); return true;
+}
+let signing = false;
+async function signIn(raw){
+  if (!Cloud.enabled() || signing) return;
+  const name = (raw||"").trim().replace(/\s+/g," "), sid = Cloud.id(name), cur = Cloud.id(DB.settings.name);
+  if (!sid){ $("greet").textContent = "Tulis namamu dulu (huruf atau angka)."; $("nameIn").focus(); return; }
+  signing = true; $("btnLogin").disabled = true; $("cloudStat").textContent = "☁ Menghubungkan…";
+  try{
+    if (cur && cur !== sid){ await Cloud.flush(); if (Cloud.dirty()) throw new Error("data pengguna sebelumnya belum terkirim"); }
+    const remote = await Cloud.pull(sid);
+    let msg;
+    if (remote && cur === sid && remote.updated <= (DB.updated||0)){ DB.settings.name = name; save(); msg = `Ahlan, ${name}!`; }   // data lokal lebih baru
+    else if (remote){ const shown = remote.name || name; adopt(remote, shown); msg = `Selamat datang kembali, ${shown}! Kemajuanmu dilanjutkan.`; }   // pakai penulisan nama asli dari server
+    else if (!cur && (DB.points || DB.sessions.length)){ DB.settings.name = name; save(); msg = `Halo ${name}! Akun baru dibuat dari latihanmu tadi.`; }   // latihan sebelum masuk dibawa
+    else { const keep = devPrefs(); DB = fresh(); Object.assign(DB.settings, keep, {name}); DB.v10 = 1; save(); msg = `Halo ${name}! Akun baru dibuat. Selamat belajar!`; }
+    renderTop(); renderHome(); $("greet").textContent = msg;
+  }catch(e){
+    $("greet").textContent = "Belum bisa terhubung ke server. Periksa internet lalu tekan Masuk lagi."; Cloud.setState("offline");
+  }finally{ signing = false; $("btnLogin").disabled = false; renderCloudStat(); }
+}
+async function bootSync(){                           // saat halaman dibuka: samakan dengan server (mis. lanjut dari perangkat lain)
+  const name = DB.settings.name, sid = Cloud.id(name); if (!sid) return;
+  try{
+    Cloud.setState("saving"); const remote = await Cloud.pull(sid);
+    if (remote && remote.updated > (DB.updated||0)){ adopt(remote, name); renderTop(); renderHome(); Cloud.setState("ok"); }
+    else Cloud.touch();
+  }catch(e){ Cloud.setState("offline"); }
+}
+async function loadBoard(){ await Cloud.flush().catch(()=>{}); return sortBoard(await Cloud.board(100)); }
+const myPos = list => { const id = Cloud.id(DB.settings.name); return id ? list.findIndex(x=>Cloud.id(x.name) === id) : -1; };
+async function refreshHomeRank(){
+  const el = $("homeRank"); el.textContent = ""; if (!Cloud.enabled() || !DB.settings.name) return;
+  try{ const list = await loadBoard(), i = myPos(list); if (i < 0 || $("v-home").hidden) return;
+    el.innerHTML = i === 0 ? "🏆 Kamu <b>#1</b> di klasemen! Pertahankan." : `🏆 Peringkat <b>#${i+1}</b> dari ${list.length} · ${list[i-1].points-list[i].points+1} poin lagi untuk naik.`;
+  }catch(e){}
+}
+function showRankInResult(){
+  if (!Cloud.enabled() || !DB.settings.name) return;
+  loadBoard().then(list=>{ const i = myPos(list); if (i >= 0 && !$("result").hidden) $("rExtra").insertAdjacentHTML("beforeend", ` 🏆 Peringkat klasemen: <b>#${i+1}</b> dari ${list.length}.`); }).catch(()=>{});
+}
+async function renderBoard(){
+  const body = $("boardBody"), me = $("boardMe"); me.textContent = "";
+  if (!Cloud.enabled()){ body.innerHTML = `<div class="notice">Klasemen aktif setelah aplikasi dihubungkan ke database. Lihat <b>FIREBASE-SETUP.md</b>.</div>`; return; }
+  body.innerHTML = `<div class="notice">Memuat klasemen…</div>`;
+  try{
+    const list = await loadBoard(), i = myPos(list), id = Cloud.id(DB.settings.name);
+    if (!list.length){ body.innerHTML = `<div class="notice">Belum ada yang masuk klasemen. Jadilah yang pertama!</div>`; }
+    else {
+      const row = (x,k)=>`<tr class="${Cloud.id(x.name)===id?"me":""}"><td class="pos">${["🥇","🥈","🥉"][k]||k+1}</td><td class="nm">${esc(x.name)}</td><td>${esc(x.rank)}</td><td><b>${x.points}</b></td><td>${f1(x.wpm)}</td><td>${f1(x.acc)}%</td></tr>`;
+      let rows = list.slice(0,20).map(row).join("");
+      if (i >= 20) rows += `<tr class="gap"><td colspan="6">⋯</td></tr>` + row(list[i], i);
+      body.innerHTML = `<div class="boardwrap"><table class="board"><thead><tr><th>#</th><th>Nama</th><th>Peringkat</th><th>Poin</th><th>WPM</th><th>Akurasi</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+    me.innerHTML = !DB.settings.name ? "Masuk dengan namamu di Beranda untuk ikut klasemen."
+      : i < 0 ? "Selesaikan satu sesi latihan agar namamu muncul di klasemen."
+      : i === 0 ? "🏆 Kamu di <b>puncak klasemen</b>! Pertahankan, jangan sampai disalip."
+      : `Peringkatmu <b>#${i+1}</b> dari ${list.length}. <b>${list[i-1].points-list[i].points+1} poin lagi</b> untuk menyalip ${esc(list[i-1].name)}.`;
+  }catch(e){ body.innerHTML = `<div class="notice">Klasemen belum bisa dimuat. Periksa internet lalu tekan <b>Perbarui klasemen</b>.</div>`; }
+}
+$("boardRefresh").onclick = renderBoard;
+renderCloudStat();
+if (Cloud.enabled() && DB.settings.name) bootSync();

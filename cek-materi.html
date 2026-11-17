@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cek Materi Ajar</title>
+<style>
+ body{font-family:system-ui,sans-serif;background:#081230;color:#f3ecd8;margin:0;padding:24px;line-height:1.5}
+ main{max-width:900px;margin:auto} h1{color:#f6dc94} h2{color:#e2b34f;margin-top:1.6em}
+ .sum{padding:14px 18px;border-radius:12px;font-weight:700;margin:14px 0}
+ .ok{background:rgba(95,220,160,.15);border:1px solid #5fdca0}.bad{background:rgba(255,123,123,.18);border:1px solid #ff7b7b}
+ table{width:100%;border-collapse:collapse;background:rgba(16,31,74,.8);border-radius:10px;overflow:hidden}
+ th,td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}
+ .ar{font-family:Amiri,serif;font-size:1.2rem} small{color:#a9b3d1} .w{color:#ffb4b4}
+ a{color:#2bb5a0}
+</style></head><body><main>
+<h1>Cek Materi Ajar</h1>
+<p><small>Halaman ini memeriksa teks di <code>js/materi.js</code>: apakah semua huruf bisa diketik di keyboard Arabic (101), apakah daftar kosong atau ganda, dan apakah klasifikasi Tebak Gambar benar. Ubah <code>js/materi.js</code>, simpan, lalu muat ulang halaman ini. <a href="index.html">← Kembali ke aplikasi</a></small></p>
+<div id="sum"></div><div id="out"></div>
+<script src="js/materi.js"></script>
+<script src="js/data.js"></script>
+<script>
+const out = document.getElementById("out"); let problems = 0;
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cp = ch => "U+"+ch.codePointAt(0).toString(16).toUpperCase().padStart(4,"0");
+const untypable = t => [...new Set([...t].filter(ch => ch !== " " && !CHAR_KEY[ch]))];
+const row = (label, n, issues, note) => { problems += issues.length;
+  return `<tr><td>${esc(label)}</td><td>${n}</td><td>${issues.length ? issues.map(i=>`<div class="w">⚠ ${i}</div>`).join("") : "✓ aman"}${note?`<div><small>${note}</small></div>`:""}</td></tr>`; };
+function listIssues(items, {noSpace=false}={}){
+  const issues = [], seen = new Set();
+  if (!items.length) issues.push("daftar kosong");
+  items.forEach((t,i)=>{
+    if (typeof t !== "string" || !t.trim()) { issues.push(`butir ${i+1} kosong`); return; }
+    const bad = untypable(t); if (bad.length) issues.push(`butir ${i+1} <span class="ar">${esc(t.slice(0,24))}</span> memuat karakter yang tidak bisa diketik: ${bad.map(c=>`<span class="ar">${esc(c)}</span> (${cp(c)})`).join(", ")}`);
+    if (noSpace && /\s/.test(t)) issues.push(`butir ${i+1} berisi spasi (harus satu kata)`);
+    if (seen.has(t)) issues.push(`butir ${i+1} ganda`); seen.add(t);
+  });
+  return issues;
+}
+let h = `<h2>Level 3 — Kata (per grade)</h2><table><tr><th>Grade</th><th>Jumlah</th><th>Pemeriksaan</th></tr>`;
+[["s","Sederhana"],["m","4–5 huruf"],["l","Panjang"]].forEach(([k,n])=>{ h += row(n, WORDS[k].length, listIssues(WORDS[k],{noSpace:true})); });
+h += `</table><h2>Level 4 — Kalimat</h2><table><tr><th>Grade</th><th>Jumlah</th><th>Pemeriksaan</th></tr>`;
+h += row("Dengan harakat (daftar tutor)", SENT.length, listIssues(SENT));
+h += row("Tanpa harakat (otomatis)", SENT.length, listIssues(SENT.map(strip)));
+h += `</table><h2>Level 5 — Paragraf (per grade)</h2><table><tr><th>Grade</th><th>Jumlah</th><th>Pemeriksaan</th></tr>`;
+[["s","Sederhana"],["m","Menengah"],["l","Lanjutan"]].forEach(([k,n])=>{ h += row(n, PARA[k].length, listIssues(PARA[k]), "panjang: "+PARA[k].map(t=>t.length).join(", ")+" huruf"); });
+h += `</table><h2>Self Learning level 2 — Tebak Gambar (3 klasifikasi)</h2><table><tr><th>Klasifikasi</th><th>Jumlah</th><th>Pemeriksaan</th></tr>`;
+[["l","Tangan kiri",HAND_L],["r","Tangan kanan",HAND_R],["m","Kiri + kanan",""]].forEach(([k,n,set])=>{
+  const iss = listIssues(PICS[k].map(x=>x[1]), {noSpace:true});
+  PICS[k].forEach((x,i)=>{
+    if (!x[0] || !x[2]) iss.push(`butir ${i+1} perlu emoji dan arti`);
+    const L=[...x[1]].some(c=>HAND_L.includes(c)), R=[...x[1]].some(c=>HAND_R.includes(c));
+    if (k==="l" && R) iss.push(`<span class="ar">${esc(x[1])}</span> memuat huruf tangan kanan`);
+    if (k==="r" && L) iss.push(`<span class="ar">${esc(x[1])}</span> memuat huruf tangan kiri`);
+    if (k==="m" && !(L&&R)) iss.push(`<span class="ar">${esc(x[1])}</span> bukan gabungan kiri + kanan`);
+  });
+  h += row(n, PICS[k].length, iss);
+});
+h += `</table><h2>Pre-test dan Post-test</h2><table><tr><th>Tes</th><th>Panjang</th><th>Pemeriksaan</th></tr>`;
+const tiss = (t) => { const i = listIssues([t]); return i; };
+h += row("Pre-test", PRETEST_TEXT.length+" huruf", tiss(PRETEST_TEXT));
+h += row("Post-test", POSTTEST_TEXT.length+" huruf", tiss(POSTTEST_TEXT).concat(Math.abs(PRETEST_TEXT.length-POSTTEST_TEXT.length) > PRETEST_TEXT.length*0.2 ? ["panjang berbeda lebih dari 20% dari pre-test (kurang setara)"] : []),
+  PRETEST_TEXT === POSTTEST_TEXT ? "teks sama dengan pre-test" : "teks berbeda dari pre-test");
+h += `</table>`;
+out.innerHTML = h;
+document.getElementById("sum").innerHTML = problems ? `<div class="sum bad">⚠ ${problems} hal perlu diperbaiki (lihat tanda ⚠ di bawah).</div>` : `<div class="sum ok">✓ Semua materi aman dan bisa diketik.</div>`;
+</script></main></body></html>
