@@ -158,3 +158,7 @@ table.board{width:100%;border-collapse:collapse;background:var(--card);border:1p
 .foot .lockup{justify-content:center;margin-bottom:10px}
 
 .cal-sub{font:700 1.15rem "Reem Kufi",Tajawal,sans-serif;letter-spacing:.42em;padding-left:.42em;color:var(--gold);margin:-6px 0 4px}
+
+/* logo diberi alas putih agar tetap terbaca di latar biru tua (logo umumnya berwarna gelap) */
+.logo-slot img{background:#fff;padding:5px 12px;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+.top .logo-slot img{padding:3px 8px;border-radius:8px}
