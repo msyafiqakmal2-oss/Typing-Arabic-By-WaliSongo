@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laporan Evaluasi – KATIB</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#14213d;--gold:#9a7412;--line:#c9ced9;--soft:#f3f5fa;--ok:#14803c;--bad:#b42318}
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:#dfe3ec;color:#111;font:12px/1.5 system-ui,"Segoe UI",Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bar{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:#14213d;color:#fff}
+  .bar button,.bar a{font:inherit;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:8px;padding:7px 14px;cursor:pointer;text-decoration:none}
+  .bar .go{background:#e2b34f;color:#14213d;border-color:#e2b34f;font-weight:700}
+  .bar small{opacity:.8}
+  .sheet{width:210mm;min-height:297mm;margin:18px auto;padding:14mm;background:#fff;box-shadow:0 6px 28px rgba(0,0,0,.25)}
+  /* kop */
+  .kop{display:grid;grid-template-columns:1fr 2.2fr 1fr;gap:10px;align-items:center;padding-bottom:10px;border-bottom:3px double var(--ink)}
+  .kop .l{justify-self:start}.kop .r{justify-self:end;display:flex;gap:10px;align-items:center}
+  .kop .c{text-align:center}
+  .kt1{font-size:15px;font-weight:800;letter-spacing:.04em;color:var(--ink)}
+  .kt2{font-size:11px;font-weight:700;color:var(--ink)}
+  .kt3{font-size:10.5px;color:#333}.kt4{font-size:10px;color:#555}
+  .logo-slot{display:inline-flex;align-items:center;gap:6px}
+  .logo-slot img{height:54px;width:auto;max-width:150px;object-fit:contain}
+  .logo-fb{display:inline-flex;align-items:center;gap:6px}
+  .brand-ar{font-family:Amiri,serif;font-size:26px;color:var(--gold);line-height:1}.brand-t{font-weight:800;color:var(--ink);letter-spacing:.06em}
+  .fb-box{border:1px dashed #9aa3b5;border-radius:6px;padding:4px 8px;font-size:9px;line-height:1.2;color:#555;text-align:center;font-weight:700}
+  h2{font-size:12px;margin:14px 0 6px;padding:4px 8px;background:var(--ink);color:#fff;letter-spacing:.03em}
+  table{width:100%;border-collapse:collapse}
+  th,td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:middle}
+  th{background:var(--soft);font-weight:700}
+  td.n,th.n{text-align:center}
+  .id td{border:0;padding:2px 4px}.id td:first-child{width:34%;color:#444}
+  .good{color:var(--ok);font-weight:700}.badc{color:var(--bad);font-weight:700}.mut{color:#777}
+  .ind{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;align-items:baseline}
+  .ind .mk{font-weight:800;font-size:13px}
+  .sec{break-inside:avoid}
+  .note{font-size:10px;color:#555;margin:6px 0 0}
+  .lines{height:22px;border-bottom:1px solid #999}
+  .sign{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:14px;text-align:center}
+  .sign .box{height:58px;border-bottom:1px solid #444}
+  .demo{display:inline-block;margin-left:6px;padding:1px 8px;border:1px solid var(--bad);color:var(--bad);border-radius:99px;font-size:10px;font-weight:700}
+  .foot{margin-top:14px;padding-top:6px;border-top:1px solid var(--line);font-size:9.5px;color:#666;display:flex;justify-content:space-between;gap:12px}
+  @page{size:A4;margin:12mm}
+  @media print{
+    body{background:#fff}.bar{display:none}
+    .sheet{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <a href="index.html">← Kembali ke KATIB</a>
+  <button class="go" onclick="window.print()">Cetak / Simpan PDF</button>
+  <small id="barNote">Pilih "Save as PDF" pada jendela cetak untuk menyimpan sebagai PDF. Saran: ukuran A4, skala 100%, aktifkan "Background graphics".</small>
+</div>
+
+<main class="sheet" id="sheet"></main>
+
+<script src="js/materi.js"></script>
+<script src="js/data.js"></script>
+<script src="js/logos.js"></script>
+<script>
+const KEY = "att_v1", params = new URLSearchParams(location.search), demo = params.has("contoh");
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const f1 = n => (Math.round((+n||0)*10)/10).toLocaleString("id-ID");
+const sign = n => (n>0?"+":n<0?"−":"") + f1(Math.abs(n));
+const mmss = s => { s = Math.round(+s||0); return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0"); };
+const tgl = d => new Date(d).toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});
+
+/* ---------- data ---------- */
+function demoDB(){
+  const now = Date.now(), ss = [];
+  [38,44,47,55,58,66,70,79,84,95,101,108].forEach((c,i)=>ss.push({date:now-(12-i)*864e5,title:"Pertemuan "+(1+i%10)+": latihan", wpm:c/5*1.04, cpm:c*1.05, ccpm:c, acc:90+Math.min(8,i*.7), err:10-Math.min(8,i*.7), sec:600, mode:"daily"}));
+  return {settings:{name:"Ahmad Fauzi"}, points:420, streak:4, days:[1,2,3,4,5,6,7], gameBest:312,
+    badges:["first","teliti","cepat","konsisten"], sessions:ss,
+    pre:{wpm:7.6, cpm:38, ccpm:34, acc:89.5, err:10.5, sec:180}, post:{wpm:16.4, cpm:82, ccpm:79, acc:96.3, err:3.7, sec:180}};
+}
+function loadDB(){ if (demo) return demoDB(); try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } }
+const raw = loadDB();
+const D = {points:0, streak:0, days:[], badges:[], sessions:[], pre:null, post:null, gameBest:0, ...raw, settings:{name:"", ...(raw.settings||{})}};
+const rankIdx = p => RANKS.reduce((a,r,i)=>p>=r[0]?i:a, 0);
+const rk = RANKS[rankIdx(D.points)], nama = D.settings.name || "(belum diisi)";
+
+/* ---------- bagian-bagian laporan ---------- */
+const cell = (m,k,dec) => m ? f1(m[k]) : "–";
+function rowTes(label, m, first){
+  return `<tr>${first}<td><b>${label}</b></td><td class="n">${m ? (mmss(m.sec)+" mnt") : "3 menit"}</td><td class="n">${cell(m,"wpm")}</td><td class="n">${cell(m,"cpm")}</td><td class="n">${cell(m,"ccpm")}</td><td class="n">${cell(m,"acc")}</td><td class="n">${cell(m,"err")}</td></tr>`;
+}
+function selisih(){
+  if (!D.pre || !D.post) return `<tr><td colspan="7" class="mut" style="text-align:center">Selisih tampil setelah pre-test dan post-test selesai.</td></tr>`;
+  const c = (k,dir)=>{ const d = D.post[k]-D.pre[k], ok = d*dir>=0; return `<td class="n ${d===0?"":ok?"good":"badc"}">${d>0?"▲ ":d<0?"▼ ":""}${sign(d)}</td>`; };
+  return `<tr><td><b>Selisih</b><br><span class="mut" style="font-size:9.5px">(post − pre)</span></td><td class="n">–</td>${c("wpm",1)}${c("cpm",1)}${c("ccpm",1)}${c("acc",1)}${c("err",-1)}</tr>`;
+}
+function indikator(){
+  if (!D.pre || !D.post) return `<p class="mut">Indikator dinilai setelah pre-test dan post-test selesai. Pre-test: ${D.pre?"✓ sudah":"belum"} · Post-test: ${D.post?"✓ sudah":"belum"}.</p>`;
+  const a = D.post.ccpm-D.pre.ccpm, w = D.post.wpm-D.pre.wpm, ac = D.post.acc-D.pre.acc, e = D.post.err-D.pre.err;
+  const L = [
+    [a>0||w>0, "Correct CPM dan/atau WPM meningkat", `Correct CPM ${sign(a)} · WPM ${sign(w)}`],
+    [ac>=0,    "Tingkat akurasi terjaga atau meningkat", `Akurasi ${sign(ac)} poin`],
+    [e<0,      "Tingkat kesalahan menurun", `Kesalahan ${sign(e)} poin`]
+  ];
+  const n = L.filter(x=>x[0]).length;
+  return `<div class="ind">${L.map(([ok,t,d])=>`<span class="mk ${ok?"good":"badc"}">${ok?"✓":"✗"}</span><span><b>${t}</b> <span class="mut">— ${d}</span></span>`).join("")}</div>
+    <p style="margin:6px 0 0"><b>Kesimpulan:</b> ${n} dari 3 indikator hasil tercapai${n===3?" — kemampuan mengetik berkembang pada kecepatan, ketepatan, dan konsistensi.":"."}</p>`;
+}
+function grafik(){
+  const s = D.sessions.slice(-30);
+  if (s.length < 2) return `<p class="mut">Grafik tampil setelah minimal 2 sesi latihan.</p>`;
+  const W=640,H=150,P=28, mx=Math.max(...s.map(x=>x.ccpm),1), X=i=>P+i*(W-2*P)/(s.length-1), Y=v=>H-P-(v/mx)*(H-2*P);
+  const pts = s.map((x,i)=>`${X(i).toFixed(1)},${Y(x.ccpm).toFixed(1)}`).join(" ");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Grafik Correct CPM per sesi">
+    <line x1="${P}" y1="${H-P}" x2="${W-P}" y2="${H-P}" stroke="#999"/><line x1="${P}" y1="${P-8}" x2="${P}" y2="${H-P}" stroke="#999"/>
+    <text x="${P}" y="${P-12}" font-size="10" fill="#555">Correct CPM (maks ${f1(mx)})</text>
+    <polyline points="${pts}" fill="none" stroke="#9a7412" stroke-width="2.5"/>
+    ${s.map((x,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(x.ccpm).toFixed(1)}" r="3" fill="#14213d"/>`).join("")}
+    <text x="${W-P}" y="${H-8}" text-anchor="end" font-size="10" fill="#555">Sesi 1 → ${s.length}</text></svg>`;
+}
+function riwayat(){
+  const s = D.sessions.slice(-10).reverse();
+  if (!s.length) return `<p class="mut">Belum ada sesi latihan.</p>`;
+  return `<table><tr><th>Tanggal</th><th>Sesi</th><th class="n">WPM</th><th class="n">Correct CPM</th><th class="n">Akurasi (%)</th></tr>${
+    s.map(x=>`<tr><td>${tgl(x.date)}</td><td>${esc(x.title)}</td><td class="n">${f1(x.wpm)}</td><td class="n">${f1(x.ccpm)}</td><td class="n">${f1(x.acc)}</td></tr>`).join("")}</table>`;
+}
+
+/* ---------- susun lembar ---------- */
+const S = D.sessions, tot = S.reduce((a,x)=>a+(+x.sec||0),0), best = k => S.length ? Math.max(...S.map(x=>+x[k]||0)) : 0;
+const bd = BADGES.filter(b=>D.badges.includes(b.id)).map(b=>b.name);
+const slot = (key, alt, fb) => `<span class="logo-slot" data-logo="${key}"><img alt="${alt}" hidden><span class="logo-fb">${fb}</span></span>`;
+$("sheet").innerHTML = `
+<header class="kop">
+  <div class="l">${slot("katib","Logo KATIB",`<span class="brand-ar" lang="ar">كاتب</span><span class="brand-t">KATIB</span>`)}</div>
+  <div class="c"><div class="kt1">${esc(LAPORAN.judul)}${demo?'<span class="demo">CONTOH</span>':""}</div><div class="kt2">${esc(LAPORAN.subjudul)}</div><div class="kt3">${esc(LAPORAN.program)}</div><div class="kt4">${esc(LAPORAN.penyelenggara)}${LAPORAN.mitra?" · Mitra: "+esc(LAPORAN.mitra):""}</div></div>
+  <div class="r">${slot("unida","Logo UNIDA Gontor",`<span class="fb-box">UNIDA<br>Gontor</span>`)}${slot("lpm","Logo LPM",`<span class="fb-box">LPM</span>`)}</div>
+</header>
+
+<section class="sec"><h2>A. IDENTITAS PESERTA</h2>
+<table class="id">
+  <tr><td>Nama / Kode Peserta</td><td>: <b>${esc(nama)}</b></td><td>Tanggal cetak</td><td>: ${tgl(Date.now())}</td></tr>
+  <tr><td>Peringkat</td><td>: <b>${esc(rk[1])}</b> (${esc(rk[2])}) · ${D.points} poin</td><td>Total sesi latihan</td><td>: ${S.length} sesi · ${f1(tot/60)} menit</td></tr>
+  <tr><td>Program 10 Hari</td><td>: ${D.days.length} dari 10 pertemuan selesai</td><td>Streak harian</td><td>: ${D.streak||0} hari</td></tr>
+</table></section>
+
+<section class="sec"><h2>B. HASIL PRE-TEST DAN POST-TEST</h2>
+<table>
+  <tr><th>Nama / Kode</th><th>Tes</th><th class="n">Durasi</th><th class="n">WPM</th><th class="n">CPM</th><th class="n">Correct CPM</th><th class="n">Akurasi (%)</th><th class="n">Kesalahan (%)</th></tr>
+  ${rowTes("Pre-test", D.pre, `<td rowspan="3">${esc(nama)}</td>`)}
+  ${rowTes("Post-test", D.post, "")}
+  ${selisih()}
+</table>
+<p class="note">WPM = karakter ÷ 5 ÷ menit · CPM = karakter ÷ menit · Correct CPM = karakter benar ÷ menit · Akurasi = karakter benar ÷ karakter dinilai × 100% · Kesalahan = 100% − akurasi.</p>
+</section>
+
+<section class="sec"><h2>C. PENCAPAIAN INDIKATOR KEBERHASILAN</h2>${indikator()}</section>
+
+<section class="sec"><h2>D. RINGKASAN LATIHAN</h2>
+<table>
+  <tr><th>WPM terbaik</th><th>Correct CPM terbaik</th><th>Akurasi terbaik</th><th>Skor game terbaik</th></tr>
+  <tr><td class="n">${f1(best("wpm"))}</td><td class="n">${f1(best("ccpm"))}</td><td class="n">${f1(best("acc"))}%</td><td class="n">${D.gameBest||0}</td></tr>
+</table>
+<p style="margin:6px 0 0"><b>Lencana diraih (${bd.length}):</b> ${bd.length?esc(bd.join(" · ")):'<span class="mut">belum ada</span>'}</p></section>
+
+<section class="sec"><h2>E. GRAFIK KEMAJUAN</h2>${grafik()}</section>
+<section class="sec"><h2>F. RIWAYAT 10 SESI TERAKHIR</h2>${riwayat()}</section>
+
+<section class="sec"><h2>G. CATATAN INSTRUKTUR</h2><div class="lines"></div><div class="lines"></div><div class="lines"></div>
+<div class="sign"><div><div>Peserta</div><div class="box"></div><div>${esc(D.settings.name||"(.....................)")}</div></div>
+<div><div>Instruktur / Tutor</div><div class="box"></div><div>${esc(LAPORAN.instruktur||"(.....................)")}</div></div></div></section>
+
+<footer class="foot"><span>${esc(LAPORAN.catatanKaki)}</span><span>Dihasilkan otomatis oleh KATIB · ${new Date().toLocaleString("id-ID")}</span></footer>`;
+if (demo) $("barNote").textContent = "Tampilan CONTOH dengan data rekaan untuk meninjau desain. Data peserta sebenarnya: buka laporan.html tanpa ?contoh.";
+initLogos();
+if (params.has("cetak")) setTimeout(()=>window.print(), 700);
+</script>
+</body>
+</html>

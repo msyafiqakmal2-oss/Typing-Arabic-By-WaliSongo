@@ -49,3 +49,28 @@ const PICS = {
    Disarankan teksnya setara tingkat kesulitannya (atau sama persis) agar perbandingan adil. */
 const PRETEST_TEXT  = "اللغة العربية من أجمل اللغات في العالم، وهي لغة القرآن الكريم. يتعلم الطلاب الكتابة بها في المدارس والجامعات، ويستخدمون الحاسوب لكتابة الرسائل والبحوث. ومن المهم أن يتقن الطالب الكتابة بالأصابع العشرة لتوفير الوقت.";
 const POSTTEST_TEXT = PRETEST_TEXT;   // ganti dengan teks lain bila tutor menyiapkan teks pasangan
+
+
+/* =====================================================================
+   LOGO & IDENTITAS LAPORAN  —  DISIAPKAN TUTOR
+   ---------------------------------------------------------------------
+   Taruh file logo di folder  assets/  dengan nama di bawah (atau ubah alamatnya).
+   Selama file belum ada, aplikasi menampilkan tulisan sementara sebagai pengganti.
+   Saran: PNG latar transparan, tinggi minimal 200 px.
+   ===================================================================== */
+const LOGOS = {
+  katib: "assets/logo-katib.png",   // logo KATIB
+  unida: "assets/logo-unida.png",   // logo UNIDA Gontor
+  lpm:   "assets/logo-lpm.png"      // logo LPM
+};
+
+/* Isi kop dan catatan pada lembar Laporan Evaluasi (halaman laporan.html, siap cetak A4). */
+const LAPORAN = {
+  judul: "LAPORAN EVALUASI PELATIHAN",
+  subjudul: "ARABIC TOUCH TYPING BERBASIS TEKNIK 10 JARI",
+  program: "KATIB · Kelas Akselerasi Touch-typing Intensif Bahasa Arab",
+  penyelenggara: "Lembaga Pengabdian Masyarakat · Universitas Darussalam Gontor",
+  mitra: "Pondok Pesantren Wali Songo Ngabar",     // kosongkan ("") bila tidak dicantumkan
+  instruktur: "",                                    // nama tutor untuk kolom tanda tangan (boleh kosong)
+  catatanKaki: "Target numerik keberhasilan ditetapkan berdasarkan hasil pre-test dan kesepakatan tim pelatihan."
+};

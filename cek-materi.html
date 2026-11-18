@@ -59,6 +59,12 @@ h += row("Pre-test", PRETEST_TEXT.length+" huruf", tiss(PRETEST_TEXT));
 h += row("Post-test", POSTTEST_TEXT.length+" huruf", tiss(POSTTEST_TEXT).concat(Math.abs(PRETEST_TEXT.length-POSTTEST_TEXT.length) > PRETEST_TEXT.length*0.2 ? ["panjang berbeda lebih dari 20% dari pre-test (kurang setara)"] : []),
   PRETEST_TEXT === POSTTEST_TEXT ? "teks sama dengan pre-test" : "teks berbeda dari pre-test");
 h += `</table>`;
+h += `<h2>Logo (folder assets/)</h2><table><tr><th>Logo</th><th>File</th><th>Status</th></tr><tbody id="logoRows"></tbody>`;
 out.innerHTML = h;
+Object.entries(LOGOS).forEach(([k,src])=>{
+  const tr = document.createElement("tr"); tr.innerHTML = `<td>${esc(k.toUpperCase())}</td><td><code>${esc(src)}</code></td><td>memeriksa…</td>`; document.getElementById("logoRows").appendChild(tr);
+  const im = new Image(); im.onload = ()=>{ tr.lastChild.innerHTML = `✓ terbaca (${im.naturalWidth}×${im.naturalHeight} px)`; };
+  im.onerror = ()=>{ tr.lastChild.innerHTML = `<span class="w">⚠ file belum ada</span> <small>(sementara tampil tulisan pengganti)</small>`; }; im.src = src;
+});
 document.getElementById("sum").innerHTML = problems ? `<div class="sum bad">⚠ ${problems} hal perlu diperbaiki (lihat tanda ⚠ di bawah).</div>` : `<div class="sum ok">✓ Semua materi aman dan bisa diketik.</div>`;
 </script></main></body></html>

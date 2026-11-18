@@ -1,4 +1,4 @@
-# Panduan Tutor — Mahir Ketik Arab
+# Panduan Tutor — KATIB
 
 ## 1. Menyiapkan teks ajar (`js/materi.js`)
 Semua teks yang disiapkan tutor ada di **satu file**: `js/materi.js`. Isi saat ini masih **teks contoh bawaan**. Ganti isinya, simpan, lalu buka **`cek-materi.html`** untuk memeriksa (huruf yang tidak bisa diketik, daftar kosong atau ganda, klasifikasi Tebak Gambar).
@@ -69,3 +69,23 @@ Dengan 10 sesi dalam Program 10 Hari, pemula mencapai ± 150–250 poin (**Thali
 
 Bila tutor ingin peringkat atas tercapai dalam waktu pelatihan yang lebih singkat, ambang poin atau rumus bisa disesuaikan.
 Catatan: poin latihan bergantung pada **Correct CPM**, sehingga siswa cepat mengumpulkan poin lebih banyak daripada siswa teliti tapi lambat. Tutor dapat mempertimbangkan bobot akurasi.
+
+## 5. Logo KATIB, UNIDA, dan LPM
+Aplikasi sudah menyediakan tempat logo di **header**, **Beranda**, **footer**, dan **kop Laporan Evaluasi**. Tutor cukup menaruh tiga file di folder `assets/`:
+
+| File | Isi |
+|---|---|
+| `assets/logo-katib.png` | Logo KATIB |
+| `assets/logo-unida.png` | Logo UNIDA Gontor |
+| `assets/logo-lpm.png` | Logo LPM |
+
+Saran: PNG berlatar transparan, tinggi minimal 200 px. Nama atau alamat file bisa diubah di bagian `LOGOS` pada `js/materi.js`. Selama file belum ada, aplikasi menampilkan tulisan sementara ("كاتب KATIB", "UNIDA Gontor", "LPM"). Buka `cek-materi.html` untuk memeriksa apakah logo sudah terbaca.
+
+## 6. Laporan Evaluasi Pelatihan (`laporan.html`)
+Dibuka dari tombol **Laporan cetak (A4)** di menu Laporan. Isinya mengikuti lembar evaluasi di modul:
+- **A.** Identitas peserta, **B.** tabel Pre-test dan Post-test (durasi, WPM, CPM, Correct CPM, akurasi, kesalahan, dan selisih), **C.** pencapaian indikator keberhasilan, **D.** ringkasan latihan dan lencana, **E.** grafik kemajuan, **F.** riwayat 10 sesi, **G.** catatan instruktur dan kolom tanda tangan.
+- Cetak langsung atau pilih *Save as PDF* di jendela cetak (A4, skala 100%, aktifkan *Background graphics*).
+- **Meninjau desain tanpa data peserta:** buka `laporan.html?contoh=1`. Halaman memakai data rekaan dan diberi tanda **CONTOH**.
+- Judul, nama program, penyelenggara, mitra, nama instruktur, dan catatan kaki diubah di bagian `LAPORAN` pada `js/materi.js`.
+
+Catatan indikator: ✓ Correct CPM dan/atau WPM meningkat, ✓ akurasi terjaga atau meningkat (post ≥ pre), ✓ kesalahan menurun. Modul menyatakan target numerik ditetapkan tim pelatihan, jadi lembar ini hanya membandingkan pre-test dengan post-test, tanpa angka target.

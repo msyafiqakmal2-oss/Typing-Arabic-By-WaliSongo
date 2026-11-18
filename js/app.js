@@ -248,12 +248,12 @@ function renderReport(){
   $("history").innerHTML = s.length ? `<table><tr><th>Tanggal</th><th>Sesi</th><th>WPM</th><th>Correct CPM</th><th>Akurasi</th></tr>` +
     s.map(x=>`<tr><td>${new Date(x.date).toLocaleString("id-ID")}</td><td>${x.title}</td><td>${f1(x.wpm)}</td><td>${f1(x.ccpm)}</td><td>${f1(x.acc)}%</td></tr>`).join("") + "</table>" : "<p class='lead'>Belum ada sesi.</p>";
 }
-$("btnPrint").onclick = ()=>window.print();
+$("btnPrint").onclick = ()=>window.open("laporan.html","_blank");   // lembar laporan A4 (laporan.html)
 function exportCsv(){
   const q = v=>`"${String(v).replace(/"/g,'""')}"`, nm = DB.settings.name || "Tanpa nama";
   const csv = "\ufeffnama,tanggal,sesi,wpm,cpm,correct_cpm,akurasi,kesalahan,detik\n" + DB.sessions.map(x=>[q(nm),x.date,q(x.title),f1(x.wpm),f1(x.cpm),f1(x.ccpm),f1(x.acc),f1(x.err),Math.round(x.sec)].join(",")).join("\n");
   const slug = nm.replace(/[^\w\u0600-\u06FF]+/g,"-").replace(/^-|-$/g,"") || "tanpa-nama";
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"})); a.download = `laporan-ketik-arab-${slug}.csv`; a.click();
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"})); a.download = `laporan-katib-${slug}.csv`; a.click();
 }
 $("btnCsv").onclick = exportCsv;
 
@@ -283,7 +283,7 @@ async function resetUser(){
   $("greet").textContent = Cloud.enabled() ? "Siap untuk pengguna baru! Isi namamu lalu tekan Masuk." : "Siap untuk pengguna baru! Isi namamu dulu."; $("nameIn").focus();
 }
 $("btnNewUser").onclick = askNewUser; $("btnNewUser2").onclick = askNewUser;
-$("nuCsv").onclick = exportCsv; $("nuPrint").onclick = ()=>window.print();
+$("nuCsv").onclick = exportCsv; $("nuPrint").onclick = ()=>window.open("laporan.html","_blank");
 $("nuNo").onclick = ()=>{ $("newUser").hidden = true; }; $("nuYes").onclick = resetUser;
 
 /* ---------- pengaturan ---------- */

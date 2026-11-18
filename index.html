@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mahir Ketik Arab – Arabic Touch Typing</title>
+<title>KATIB – Kelas Akselerasi Touch-typing Intensif Bahasa Arab</title>
+<meta name="description" content="KATIB (Kelas Akselerasi Touch-typing Intensif Bahasa Arab): pelatihan mengetik Arab 10 jari dengan latihan bertahap, game, dan klasemen.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%23081230%27/%3E%3Ctext x=%2732%27 y=%2745%27 font-size=%2740%27 text-anchor=%27middle%27 fill=%27%23e2b34f%27 font-family=%27serif%27%3E%D9%83%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Reem+Kufi:wght@500;700&family=Tajawal:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><span class="brand-ar" lang="ar">اكتب</span><span class="brand-t">Mahir Ketik Arab</span></div>
+  <div class="brand"><span class="logo-slot" data-logo="katib"><img alt="Logo KATIB" hidden><span class="logo-fb"><span class="brand-ar" lang="ar">كاتب</span><span class="brand-t">KATIB</span></span></span></div>
   <nav id="nav">
     <button data-view="home" class="on">Beranda</button>
     <button data-view="tutorial">Tutorial Learning</button>
@@ -33,6 +35,8 @@
   <section id="v-home" class="view">
     <div class="hero">
       <div>
+        <div class="lockup"><span class="logo-slot" data-logo="katib"><img alt="Logo KATIB" hidden><span class="logo-fb"><span class="brand-ar" lang="ar">كاتب</span><span class="brand-t">KATIB</span></span></span><i class="sep"></i><span class="logo-slot" data-logo="unida"><img alt="Logo UNIDA Gontor" hidden><span class="logo-fb fb-box">UNIDA<br>Gontor</span></span><span class="logo-slot" data-logo="lpm"><img alt="Logo LPM" hidden><span class="logo-fb fb-box">LPM</span></span></div>
+        <p class="fullname">KATIB · Kelas Akselerasi Touch-typing Intensif Bahasa Arab</p>
         <p class="greet" id="greet"></p>
         <h1>Ketik Arab tanpa melihat keyboard.</h1>
         <p class="lead">Naikkan peringkat dari <b>Mubtadi’</b> sampai <b>Ustadz</b>: kumpulkan poin, bintang, lencana, dan jaga api streak harianmu.</p>
@@ -48,7 +52,7 @@
       </div>
       <div class="arch">
         <svg class="fanous" viewBox="0 0 40 80" width="44" aria-hidden="true"><line x1="20" y1="0" x2="20" y2="14" stroke="#e2b34f"/><path d="M14 14h12l3 8H11z" fill="#e2b34f"/><path d="M11 22h18l4 22-13 14L7 44z" fill="#2bb5a0" fill-opacity=".85" stroke="#e2b34f"/><path d="M20 24v32M13 30l7 26M27 30l-7 26" stroke="#e2b34f" stroke-opacity=".6" fill="none"/><path d="M16 58h8l-4 10z" fill="#e2b34f"/></svg>
-        <div class="cal" lang="ar">اكتب<br>بإتقان</div>
+        <div class="cal" lang="ar">كاتب</div><div class="cal-sub">KATIB</div>
         <div id="rankBox" class="rankbox"></div>
       </div>
     </div>
@@ -110,7 +114,7 @@
     <div id="badges" class="badges"></div>
     <h2>Riwayat sesi</h2>
     <div id="history"></div>
-    <div class="cta"><button id="btnCsv">Unduh CSV</button><button id="btnPrint">Cetak laporan</button><button class="danger" id="btnNewUser2">Ganti pengguna</button></div>
+    <div class="cta"><button id="btnCsv">Unduh CSV</button><button id="btnPrint">Laporan cetak (A4)</button><button class="danger" id="btnNewUser2">Ganti pengguna</button></div>
   </section>
 
   <!-- PANDUAN -->
@@ -154,6 +158,11 @@
     <div class="finishbar"><button id="btnFinish" class="danger">Selesai</button></div>
   </section>
 </main>
+
+<footer class="foot">
+  <div class="lockup"><span class="logo-slot" data-logo="katib"><img alt="Logo KATIB" hidden><span class="logo-fb"><span class="brand-ar" lang="ar">كاتب</span><span class="brand-t">KATIB</span></span></span><i class="sep"></i><span class="logo-slot" data-logo="unida"><img alt="Logo UNIDA Gontor" hidden><span class="logo-fb fb-box">UNIDA<br>Gontor</span></span><span class="logo-slot" data-logo="lpm"><img alt="Logo LPM" hidden><span class="logo-fb fb-box">LPM</span></span></div>
+  <p><b>KATIB</b> · Kelas Akselerasi Touch-typing Intensif Bahasa Arab<br>Lembaga Pengabdian Masyarakat · Universitas Darussalam Gontor</p>
+</footer>
 
 <!-- HASIL -->
 <div id="result" class="modal" hidden><div class="card">
@@ -206,6 +215,7 @@
 <script src="js/data.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/game.js"></script>
+<script src="js/logos.js"></script>
 <script src="js/config.js"></script>
 <script src="js/cloud.js"></script>
 <script src="js/app.js"></script>
