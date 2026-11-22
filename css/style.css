@@ -159,6 +159,7 @@ table.board{width:100%;border-collapse:collapse;background:var(--card);border:1p
 
 .cal-sub{font:700 1.15rem "Reem Kufi",Tajawal,sans-serif;letter-spacing:.42em;padding-left:.42em;color:var(--gold);margin:-6px 0 4px}
 
-/* logo diberi alas putih agar tetap terbaca di latar biru tua (logo umumnya berwarna gelap) */
-.logo-slot img{background:#fff;padding:5px 12px;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.25)}
-.top .logo-slot img{padding:3px 8px;border-radius:8px}
+/* logo UNIDA & LPM tanpa alas: dibuat putih polos agar terbaca di latar biru tua */
+.logo-slot[data-logo="unida"] img,.logo-slot[data-logo="lpm"] img{background:none;padding:0;border-radius:0;box-shadow:none;filter:brightness(0) invert(1) drop-shadow(0 0 4px rgba(255,255,255,.25))}
+.logo-slot[data-logo="unida"] img{height:60px}
+.logo-slot[data-logo="lpm"] img{height:44px}
