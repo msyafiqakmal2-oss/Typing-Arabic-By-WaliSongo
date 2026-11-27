@@ -1,6 +1,5 @@
 # KATIB — Kelas Akselerasi Touch-typing Intensif Bahasa Arab – Arabic Touch Typing
 
-
 Website latihan mengetik Arab (gamifikasi + pengukuran kemampuan). Statis: HTML + CSS + JavaScript, tanpa instalasi.
 
 ## Cara menjalankan
